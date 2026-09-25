@@ -2,5 +2,6 @@
   <Project Path="BabaTune.Application/BabaTune.Application.csproj" Id="55fcd92a-5ca5-4d17-804c-8b84f606aad6" />
   <Project Path="BabaTune.Domain/BabaTune.Domain.csproj" />
   <Project Path="BabaTune.Infrastructure/BabaTune.Infrastructure.csproj" />
+  <Project Path="BabaTune.Tests/BabaTune.Tests.csproj" Id="60cb3ac5-4584-477d-9c43-06d5e6b5789f" />
   <Project Path="BabaTune.WebApi/BabaTune.WebApi.csproj" />
 </Solution>
