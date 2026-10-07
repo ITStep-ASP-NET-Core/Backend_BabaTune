@@ -1,5 +1,6 @@
 using BabaTune.Application.DTO.Albums;
 using BabaTune.Application.Interfaces;
+using BabaTune.Application.Validation;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -65,7 +66,7 @@ public class AlbumsController : BaseApiController
 
 	[HttpPut("{id:guid}/image")]
 	[RequestSizeLimit(MaxImageSize)]
-	public async Task<IActionResult> UpdateImage ( Guid id, IFormFile imageFile )
+	public async Task<IActionResult> UpdateImage ( Guid id, [ImageFile] IFormFile imageFile )
 	{
 		if (ValidateImage(imageFile, required: true) is { } error)
 			return error;

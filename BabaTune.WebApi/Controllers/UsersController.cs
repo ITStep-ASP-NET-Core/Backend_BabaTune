@@ -1,5 +1,6 @@
 using BabaTune.Application.DTO.Users;
 using BabaTune.Application.Interfaces;
+using BabaTune.Application.Validation;
 using BabaTune.WebApi.Requests;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -48,7 +49,7 @@ public class UsersController : BaseApiController
 
 	[HttpPut("me/avatar")]
 	[RequestSizeLimit(5 * 1024 * 1024)]
-	public async Task<IActionResult> UpdateAvatar ( IFormFile avatarFile )
+	public async Task<IActionResult> UpdateAvatar ( [ImageFile] IFormFile avatarFile )
 	{
 		if (ValidateImage(avatarFile, required: true) is { } error)
 			return error;

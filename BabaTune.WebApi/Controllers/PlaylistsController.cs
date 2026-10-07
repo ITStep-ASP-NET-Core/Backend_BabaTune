@@ -1,5 +1,6 @@
 using BabaTune.Application.DTO.Playlists;
 using BabaTune.Application.Interfaces;
+using BabaTune.Application.Validation;
 using BabaTune.WebApi.Requests;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -61,7 +62,7 @@ public class PlaylistsController : BaseApiController
 
 	[HttpPut("{id:guid}/image")]
 	[RequestSizeLimit(MaxImageSize)]
-	public async Task<IActionResult> UpdateImage ( Guid id, IFormFile imageFile )
+	public async Task<IActionResult> UpdateImage ( Guid id, [ImageFile] IFormFile imageFile )
 	{
 		if (ValidateImage(imageFile, required: true) is { } error)
 			return error;
