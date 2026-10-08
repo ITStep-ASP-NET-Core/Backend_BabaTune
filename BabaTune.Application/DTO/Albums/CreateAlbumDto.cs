@@ -1,3 +1,4 @@
+using BabaTune.Application.Validation;
 using Microsoft.AspNetCore.Http;
 
 namespace BabaTune.Application.DTO.Albums
@@ -6,6 +7,7 @@ namespace BabaTune.Application.DTO.Albums
 	{
 		public string Name { get; set; } = string.Empty;
 		public string? Description { get; set; }
+		[ImageFile]
 		public IFormFile? ImageFile { get; set; }
 	}
 }

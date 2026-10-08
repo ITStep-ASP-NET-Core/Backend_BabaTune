@@ -1,5 +1,6 @@
 using BabaTune.Application.DTO.Songs;
 using BabaTune.Application.Interfaces;
+using BabaTune.Application.Validation;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -71,7 +72,7 @@ public class SongsController : BaseApiController
 
 	[HttpPut("{id:guid}/image")]
 	[RequestSizeLimit(MaxImageSize)]
-	public async Task<IActionResult> UpdateImage ( Guid id, IFormFile imageFile )
+	public async Task<IActionResult> UpdateImage ( Guid id, [ImageFile] IFormFile imageFile )
 	{
 		if (ValidateImage(imageFile, required: true) is { } error)
 			return error;
@@ -86,7 +87,7 @@ public class SongsController : BaseApiController
 	[HttpPut("{id:guid}/audio")]
 	[RequestSizeLimit(MaxAudioSize)]
 	[RequestFormLimits(MultipartBodyLengthLimit = MaxAudioSize)]
-	public async Task<IActionResult> UpdateAudio ( Guid id, IFormFile audioFile )
+	public async Task<IActionResult> UpdateAudio ( Guid id, [AudioFile] IFormFile audioFile )
 	{
 		if (ValidateAudio(audioFile, required: true) is { } error)
 			return error;
