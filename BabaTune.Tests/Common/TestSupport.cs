@@ -21,8 +21,11 @@ public class UowMock
     public Mock<IPlaylistRepository> Playlists { get; } = new();
     public Mock<INoticeRepository> Notices { get; } = new();
     public Mock<IListenHistoryRepository> ListenHistories { get; } = new();
+	public Mock<IChatRepository> Chats { get; } = new();
+	public Mock<IFriendshipRepository> Friendships { get; } = new();
+	public Mock<IRoomRepository> Rooms { get; } = new();
 
-    public IUnitOfWork Object => Mock.Object;
+	public IUnitOfWork Object => Mock.Object;
 
     public UowMock()
     {
@@ -37,7 +40,10 @@ public class UowMock
         Mock.SetupGet(x => x.Playlists).Returns(Playlists.Object);
         Mock.SetupGet(x => x.Notices).Returns(Notices.Object);
         Mock.SetupGet(x => x.ListenHistories).Returns(ListenHistories.Object);
-        Mock.Setup(x => x.SaveChangesAsync()).Returns(Task.CompletedTask);
+		Mock.SetupGet(x => x.Chats).Returns(Chats.Object);
+		Mock.SetupGet(x => x.Friendships).Returns(Friendships.Object);
+		Mock.SetupGet(x => x.Rooms).Returns(Rooms.Object);
+		Mock.Setup(x => x.SaveChangesAsync()).Returns(Task.CompletedTask);
     }
 }
 

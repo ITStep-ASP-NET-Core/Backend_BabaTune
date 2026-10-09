@@ -1,5 +1,7 @@
 using BabaTune.Application.DTO.Albums;
 using BabaTune.Application.Interfaces;
+using BabaTune.Application.Validation;
+using BabaTune.WebApi.Requests;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -53,7 +55,7 @@ public class AlbumsController : BaseApiController
 	[RequestSizeLimit(MaxImageSize)]
 	public async Task<IActionResult> Create ( [FromForm] CreateAlbumDto dto )
 	{
-		if (ValidateImage(dto.ImageFile) is { } error)
+		if(ValidateImage(dto.ImageFile) is { } error)
 			return error;
 
 		return ToActionResult(await _albumService.CreateAsync(dto, CurrentUserId), created: true);
@@ -65,9 +67,9 @@ public class AlbumsController : BaseApiController
 
 	[HttpPut("{id:guid}/image")]
 	[RequestSizeLimit(MaxImageSize)]
-	public async Task<IActionResult> UpdateImage ( Guid id, IFormFile imageFile )
+	public async Task<IActionResult> UpdateImage ( Guid id, [ImageFile] IFormFile imageFile )
 	{
-		if (ValidateImage(imageFile, required: true) is { } error)
+		if(ValidateImage(imageFile, required: true) is { } error)
 			return error;
 
 		return ToActionResult(await _albumService.UpdateImageAsync(id, CurrentUserId, imageFile));
@@ -76,6 +78,18 @@ public class AlbumsController : BaseApiController
 	[HttpDelete("{id:guid}/image")]
 	public async Task<IActionResult> ResetImage ( Guid id )
 		=> ToActionResult(await _albumService.UpdateImageAsync(id, CurrentUserId, null));
+
+	[HttpPost("{id:guid}/songs/{songId:guid}")]
+	public async Task<IActionResult> AddSong ( Guid id, Guid songId )
+		=> ToActionResult(await _albumService.AddSongAsync(id, CurrentUserId, songId));
+
+	[HttpPost("{id:guid}/songs")]
+	public async Task<IActionResult> AddSongs ( Guid id, [FromBody] AddAlbumSongsRequest request )
+		=> ToActionResult(await _albumService.AddSongsAsync(id, CurrentUserId, request.SongIds));
+
+	[HttpDelete("{id:guid}/songs/{songId:guid}")]
+	public async Task<IActionResult> RemoveSong ( Guid id, Guid songId )
+		=> ToActionResult(await _albumService.RemoveSongAsync(id, CurrentUserId, songId));
 
 	[HttpDelete("{id:guid}")]
 	public async Task<IActionResult> Delete ( Guid id )

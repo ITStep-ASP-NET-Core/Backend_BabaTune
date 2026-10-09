@@ -23,6 +23,9 @@ namespace BabaTune.Application.ServiceProviderExtensions
 			services.AddScoped<IGenreRepository, GenreRepository>();
 			services.AddScoped<IStorageRepository, FirebaseStorageRepository>();
 			services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
+			services.AddScoped<IRoomRepository, RoomRepository>();
+			services.AddScoped<IChatRepository, ChatRepository>();
+			services.AddScoped<IFriendshipRepository, FriendshipRepository>();
 
 			services.AddScoped<IUnitOfWork, UnitOfWork>();
 		}

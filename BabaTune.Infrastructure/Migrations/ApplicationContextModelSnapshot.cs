@@ -74,6 +74,67 @@ namespace BabaTune.Infrastructure.Migrations
                     b.ToTable("Categories");
                 });
 
+            modelBuilder.Entity("BabaTune.Domain.Entities.Chat", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("Type")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Chat");
+                });
+
+            modelBuilder.Entity("BabaTune.Domain.Entities.Friendship", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid?>("ChatId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("RecipientId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("SenderId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ChatId")
+                        .IsUnique()
+                        .HasFilter("[ChatId] IS NOT NULL");
+
+                    b.HasIndex("RecipientId");
+
+                    b.HasIndex("SenderId", "RecipientId")
+                        .IsUnique();
+
+                    b.ToTable("Friendship", t =>
+                        {
+                            t.HasCheckConstraint("CK_Friendship_NotSelf", "[SenderId] <> [RecipientId]");
+                        });
+                });
+
             modelBuilder.Entity("BabaTune.Domain.Entities.Genre", b =>
                 {
                     b.Property<int>("Id")
@@ -124,6 +185,40 @@ namespace BabaTune.Infrastructure.Migrations
                         .HasFilter("[UserId] IS NOT NULL");
 
                     b.ToTable("ListenHistories");
+                });
+
+            modelBuilder.Entity("BabaTune.Domain.Entities.Message", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("ChatId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("Type")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ChatId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("Message");
+
+                    b.HasDiscriminator<int>("Type");
+
+                    b.UseTphMappingStrategy();
                 });
 
             modelBuilder.Entity("BabaTune.Domain.Entities.Notice", b =>
@@ -234,6 +329,30 @@ namespace BabaTune.Infrastructure.Migrations
                     b.ToTable("PlaylistItems");
                 });
 
+            modelBuilder.Entity("BabaTune.Domain.Entities.QueueItem", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("AddedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("RoomId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("SongId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SongId");
+
+                    b.HasIndex("RoomId", "AddedAt");
+
+                    b.ToTable("QueueItem");
+                });
+
             modelBuilder.Entity("BabaTune.Domain.Entities.RefreshToken", b =>
                 {
                     b.Property<Guid>("Id")
@@ -264,6 +383,49 @@ namespace BabaTune.Infrastructure.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("RefreshTokens");
+                });
+
+            modelBuilder.Entity("BabaTune.Domain.Entities.Room", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("ChatId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("CurrentSongId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<bool>("IsPlaying")
+                        .HasColumnType("bit");
+
+                    b.Property<Guid>("OwnerId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("PlaybackPositionMs")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Type")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ChatId")
+                        .IsUnique();
+
+                    b.HasIndex("CurrentSongId");
+
+                    b.HasIndex("OwnerId")
+                        .IsUnique();
+
+                    b.ToTable("Room");
                 });
 
             modelBuilder.Entity("BabaTune.Domain.Entities.Song", b =>
@@ -351,6 +513,12 @@ namespace BabaTune.Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
+                    b.Property<bool>("IsAdmin")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsBlocked")
+                        .HasColumnType("bit");
+
                     b.Property<bool>("IsChecked")
                         .HasColumnType("bit");
 
@@ -362,6 +530,9 @@ namespace BabaTune.Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<Guid?>("RoomId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("datetime2");
 
@@ -369,6 +540,8 @@ namespace BabaTune.Infrastructure.Migrations
 
                     b.HasIndex("Email")
                         .IsUnique();
+
+                    b.HasIndex("RoomId");
 
                     b.ToTable("Users");
                 });
@@ -403,6 +576,29 @@ namespace BabaTune.Infrastructure.Migrations
                     b.ToTable("GenreSong");
                 });
 
+            modelBuilder.Entity("BabaTune.Domain.Entities.SongMessage", b =>
+                {
+                    b.HasBaseType("BabaTune.Domain.Entities.Message");
+
+                    b.Property<Guid>("SongId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasIndex("SongId");
+
+                    b.HasDiscriminator().HasValue(1);
+                });
+
+            modelBuilder.Entity("BabaTune.Domain.Entities.TextMessage", b =>
+                {
+                    b.HasBaseType("BabaTune.Domain.Entities.Message");
+
+                    b.Property<string>("Text")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasDiscriminator().HasValue(0);
+                });
+
             modelBuilder.Entity("BabaTune.Domain.Entities.Album", b =>
                 {
                     b.HasOne("BabaTune.Domain.Entities.User", "User")
@@ -411,6 +607,32 @@ namespace BabaTune.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.SetNull);
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("BabaTune.Domain.Entities.Friendship", b =>
+                {
+                    b.HasOne("BabaTune.Domain.Entities.Chat", "Chat")
+                        .WithOne()
+                        .HasForeignKey("BabaTune.Domain.Entities.Friendship", "ChatId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("BabaTune.Domain.Entities.User", "Recipient")
+                        .WithMany()
+                        .HasForeignKey("RecipientId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("BabaTune.Domain.Entities.User", "Sender")
+                        .WithMany()
+                        .HasForeignKey("SenderId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Chat");
+
+                    b.Navigation("Recipient");
+
+                    b.Navigation("Sender");
                 });
 
             modelBuilder.Entity("BabaTune.Domain.Entities.ListenHistory", b =>
@@ -427,6 +649,25 @@ namespace BabaTune.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Cascade);
 
                     b.Navigation("Song");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("BabaTune.Domain.Entities.Message", b =>
+                {
+                    b.HasOne("BabaTune.Domain.Entities.Chat", "Chat")
+                        .WithMany("Messages")
+                        .HasForeignKey("ChatId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("BabaTune.Domain.Entities.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Chat");
 
                     b.Navigation("User");
                 });
@@ -479,6 +720,25 @@ namespace BabaTune.Infrastructure.Migrations
                     b.Navigation("Song");
                 });
 
+            modelBuilder.Entity("BabaTune.Domain.Entities.QueueItem", b =>
+                {
+                    b.HasOne("BabaTune.Domain.Entities.Room", "Room")
+                        .WithMany("Queue")
+                        .HasForeignKey("RoomId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("BabaTune.Domain.Entities.Song", "Song")
+                        .WithMany()
+                        .HasForeignKey("SongId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Room");
+
+                    b.Navigation("Song");
+                });
+
             modelBuilder.Entity("BabaTune.Domain.Entities.RefreshToken", b =>
                 {
                     b.HasOne("BabaTune.Domain.Entities.User", "User")
@@ -488,6 +748,31 @@ namespace BabaTune.Infrastructure.Migrations
                         .IsRequired();
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("BabaTune.Domain.Entities.Room", b =>
+                {
+                    b.HasOne("BabaTune.Domain.Entities.Chat", "Chat")
+                        .WithOne()
+                        .HasForeignKey("BabaTune.Domain.Entities.Room", "ChatId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("BabaTune.Domain.Entities.Song", "CurrentSong")
+                        .WithMany()
+                        .HasForeignKey("CurrentSongId");
+
+                    b.HasOne("BabaTune.Domain.Entities.User", "Owner")
+                        .WithOne()
+                        .HasForeignKey("BabaTune.Domain.Entities.Room", "OwnerId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Chat");
+
+                    b.Navigation("CurrentSong");
+
+                    b.Navigation("Owner");
                 });
 
             modelBuilder.Entity("BabaTune.Domain.Entities.Song", b =>
@@ -526,6 +811,16 @@ namespace BabaTune.Infrastructure.Migrations
                     b.Navigation("Subscriber");
                 });
 
+            modelBuilder.Entity("BabaTune.Domain.Entities.User", b =>
+                {
+                    b.HasOne("BabaTune.Domain.Entities.Room", "Room")
+                        .WithMany("Members")
+                        .HasForeignKey("RoomId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("Room");
+                });
+
             modelBuilder.Entity("CategorySong", b =>
                 {
                     b.HasOne("BabaTune.Domain.Entities.Category", null)
@@ -556,14 +851,37 @@ namespace BabaTune.Infrastructure.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("BabaTune.Domain.Entities.SongMessage", b =>
+                {
+                    b.HasOne("BabaTune.Domain.Entities.Song", "Song")
+                        .WithMany()
+                        .HasForeignKey("SongId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Song");
+                });
+
             modelBuilder.Entity("BabaTune.Domain.Entities.Album", b =>
                 {
                     b.Navigation("Songs");
                 });
 
+            modelBuilder.Entity("BabaTune.Domain.Entities.Chat", b =>
+                {
+                    b.Navigation("Messages");
+                });
+
             modelBuilder.Entity("BabaTune.Domain.Entities.Playlist", b =>
                 {
                     b.Navigation("Items");
+                });
+
+            modelBuilder.Entity("BabaTune.Domain.Entities.Room", b =>
+                {
+                    b.Navigation("Members");
+
+                    b.Navigation("Queue");
                 });
 
             modelBuilder.Entity("BabaTune.Domain.Entities.User", b =>

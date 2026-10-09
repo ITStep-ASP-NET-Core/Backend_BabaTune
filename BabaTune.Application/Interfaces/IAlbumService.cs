@@ -13,6 +13,9 @@ namespace BabaTune.Application.Interfaces
 		Task<Result> CreateAsync ( CreateAlbumDto albumDto, Guid userId );
 		Task<Result> UpdateInfoAsync ( Guid albumId, Guid userId, UpdateAlbumDto albumDto );
 		Task<Result> UpdateImageAsync ( Guid albumId, Guid userId, IFormFile? imageFile );
+		Task<Result> AddSongsAsync ( Guid albumId, Guid userId, ICollection<Guid> songIds );
+		Task<Result> AddSongAsync ( Guid albumId, Guid userId, Guid songId );
+		Task<Result> RemoveSongAsync ( Guid albumId, Guid userId, Guid songId );
 		Task<Result> DeleteAsync ( Guid albumId, Guid userId );
 	}
 }

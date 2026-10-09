@@ -30,5 +30,65 @@ namespace BabaTune.Infrastructure.Repositories
 
 			return await q.ToPagedResultAsync(pageNumber, pageSize);
 		}
+
+		public async Task<int> GetSongsCountAsync ( Guid albumId )
+		{
+			return await _context.Songs.CountAsync(s => s.AlbumId == albumId);
+		}
+
+		public async Task<bool> ContainsSongAsync ( Guid albumId, Guid songId )
+		{
+			return await _context.Songs.AnyAsync(s => s.Id == songId && s.AlbumId == albumId);
+		}
+
+		public async Task<bool> AnySongInAlbumAsync ( ICollection<Guid> songIds )
+		{
+			if (songIds is null || songIds.Count == 0)
+				return false;
+
+			return await _context.Songs.AnyAsync(s => songIds.Contains(s.Id) && s.AlbumId != null);
+		}
+
+		public async Task<int> CountOwnedSongsAsync ( Guid userId, ICollection<Guid> songIds )
+		{
+			if (songIds is null || songIds.Count == 0)
+				return 0;
+
+			return await _context.Songs.CountAsync(s => s.UserId == userId && songIds.Contains(s.Id));
+		}
+
+		public async Task AddSongsAsync ( Guid albumId, ICollection<Guid> songIds )
+		{
+			if (songIds is null || songIds.Count == 0)
+				return;
+
+			var songs = await _context.Songs.Where(s => songIds.Contains(s.Id)).ToListAsync();
+			var now = DateTime.UtcNow;
+
+			foreach (var song in songs)
+			{
+				song.AlbumId = albumId;
+				song.UpdatedAt = now;
+			}
+		}
+
+		public async Task RemoveSongAsync ( Guid albumId, Guid songId )
+		{
+			var song = await _context.Songs.FirstOrDefaultAsync(s => s.Id == songId && s.AlbumId == albumId);
+			if (song is null)
+				return;
+
+			song.AlbumId = null;
+			song.UpdatedAt = DateTime.UtcNow;
+		}
+		public async Task<HashSet<Guid>> GetSongIdsAsync ( Guid albumId )
+		{
+			return await _context.Songs
+			  .AsNoTracking()
+			  .Where(s => s.AlbumId == albumId)
+			  .OrderBy(s => s.CreatedAt)
+			  .Select(s => s.Id)
+			  .ToHashSetAsync();
+		}
 	}
 }

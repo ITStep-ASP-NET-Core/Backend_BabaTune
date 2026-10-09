@@ -8,8 +8,10 @@ namespace BabaTune.Domain.Entities
         public string Email { get; set; } = null!;
         public string PasswordHash { get; set; } = null!;
         public bool IsChecked { get; set; } = false;
-        public string? AvatarUrl { get; set; }
-		public ICollection<Subscribe> Subscriptions { get; set; } = [];
+		public string? AvatarUrl { get; set; }
+		public Guid? RoomId { get; set; }
+		public Room? Room { get; set; }
+        public ICollection<Subscribe> Subscriptions { get; set; } = [];
 		public ICollection<Subscribe> Subscribers { get; set; } = [];
 		public ICollection<Playlist> Playlists { get; set; } = [];
 		public ICollection<Song> Songs { get; set; } = [];

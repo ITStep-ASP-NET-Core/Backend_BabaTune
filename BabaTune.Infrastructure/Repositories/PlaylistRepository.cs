@@ -172,5 +172,14 @@ namespace BabaTune.Infrastructure.Repositories
 			target.Number = clampedPosition;
 			target.UpdatedAt = DateTime.UtcNow;
 		}
+
+		public async Task<HashSet<Guid>> GetSongIdsAsync ( Guid playlistId )
+		{
+			return await _context.PlaylistItems
+				.Where(i => i.PlaylistId == playlistId)
+				.OrderBy(i => i.Number)
+				.Select(i => i.SongId)
+				.ToHashSetAsync();
+		}
 	}
 }

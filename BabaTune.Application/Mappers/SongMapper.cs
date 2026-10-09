@@ -24,7 +24,6 @@ namespace BabaTune.Application.Mappers
 			Id = Guid.NewGuid(),
 			Name = songDto.Name,
 			Description = songDto.Description,
-			AlbumId = songDto.AlbumId,
 			UserId = userId,
 			Url = Url,
 			ImageUrl = imageUrl,

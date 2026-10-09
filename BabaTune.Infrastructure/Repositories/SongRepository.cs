@@ -87,5 +87,18 @@ namespace BabaTune.Infrastructure.Repositories
 
 			return await query.ToPagedResultAsync(pageNumber, pageSize);
 		}
+
+		public async Task<HashSet<Guid>> GetIdsByAlbumAsync ( Guid albumId )
+		{
+			return await _context.Songs
+				.Where(i => i.AlbumId == albumId)
+				.OrderBy(i => i.CreatedAt)
+				.Select(i => i.Id)
+				.ToHashSetAsync();
+		}
+		public async Task<int> GetCountByAlbumAsync ( Guid albumId )
+		{
+			return await _context.Songs.CountAsync(s => s.AlbumId == albumId);
+		}
 	}
 }
