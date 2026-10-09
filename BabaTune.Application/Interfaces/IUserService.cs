@@ -13,5 +13,9 @@ namespace BabaTune.Application.Interfaces
 		Task<Result> UpdateInfoAsync ( Guid userId, UpdateUserDto dto );
 		Task<Result> UpdatePasswordAsync ( Guid userId, string currentPassword, string newPassword );
 		Task<Result> UpdateAvatarAsync ( Guid userId, IFormFile? avatarFile );
+		Task<Result> BlockAsync ( Guid actorId, Guid targetId );
+		Task<Result> UnblockAsync ( Guid actorId, Guid targetId );
+		Task<Result> GrantAdminAsync ( Guid targetId );
+		Task<Result> RevokeAdminAsync ( Guid actorId, Guid targetId );
 	}
 }
