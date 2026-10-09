@@ -9,5 +9,6 @@ namespace BabaTune.Application.DTO.Albums
 		public string? Description { get; set; }
 		[ImageFile]
 		public IFormFile? ImageFile { get; set; }
+		public ICollection<Guid> SongIds { get; set; } = [];
 	}
 }
