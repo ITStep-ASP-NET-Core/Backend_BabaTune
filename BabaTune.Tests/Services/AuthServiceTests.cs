@@ -115,6 +115,37 @@ public class AuthServiceTests
 	}
 
 	[Fact]
+	public async Task Login_BlockedUser_FailsWithoutIssuingTokens ( )
+	{
+		var user = TestData.NewUser();
+		user.IsBlocked = true;
+		_uow.Users.Setup(u => u.GetByEmailAsync(user.Email)).ReturnsAsync(user);
+		_hasher.Setup(h => h.VerifyPassword("pass", user.PasswordHash)).Returns(true);
+
+		var result = await _sut.LoginAsync(new LoginDto { Email = user.Email, Password = "pass" });
+
+		Assert.False(result.Success);
+		Assert.Equal("Account is blocked.", result.Error);
+		Assert.Null(result.Data);
+		_uow.RefreshTokens.Verify(r => r.AddAsync(It.IsAny<RefreshToken>()), Times.Never);
+		_uow.Mock.Verify(u => u.SaveChangesAsync(), Times.Never);
+	}
+
+	[Fact]
+	public async Task Login_BlockedUserWrongPassword_DoesNotRevealBlock ( )
+	{
+		var user = TestData.NewUser();
+		user.IsBlocked = true;
+		_uow.Users.Setup(u => u.GetByEmailAsync(user.Email)).ReturnsAsync(user);
+		_hasher.Setup(h => h.VerifyPassword("wrong", user.PasswordHash)).Returns(false);
+
+		var result = await _sut.LoginAsync(new LoginDto { Email = user.Email, Password = "wrong" });
+
+		Assert.False(result.Success);
+		Assert.Equal("Invalid email or password.", result.Error);
+	}
+
+	[Fact]
 	public async Task Refresh_UnknownToken_Fails ( )
 	{
 		var result = await _sut.RefreshAsync("missing");
@@ -187,6 +218,31 @@ public class AuthServiceTests
 		Assert.False(result.Success);
 		_uow.RefreshTokens.Verify(r => r.RevokeAsync(It.IsAny<Guid>()), Times.Never);
 		_uow.RefreshTokens.Verify(r => r.AddAsync(It.IsAny<RefreshToken>()), Times.Never);
+	}
+
+	[Fact]
+	public async Task Refresh_BlockedUser_RevokesTokenAndFailsWithoutIssuingNew ( )
+	{
+		var user = TestData.NewUser();
+		user.IsBlocked = true;
+		var old = new RefreshToken
+		{
+			Id = Guid.NewGuid(),
+			UserId = user.Id,
+			Token = "old",
+			ExpiresAt = DateTime.UtcNow.AddDays(1)
+		};
+		_uow.RefreshTokens.Setup(r => r.GetByTokenAsync("old")).ReturnsAsync(old);
+		_uow.Users.Setup(u => u.GetByIdAsync(user.Id)).ReturnsAsync(user);
+
+		var result = await _sut.RefreshAsync("old");
+
+		Assert.False(result.Success);
+		Assert.Equal("Account is blocked.", result.Error);
+		Assert.Null(result.Data);
+		_uow.RefreshTokens.Verify(r => r.RevokeAsync(old.Id), Times.Once);
+		_uow.RefreshTokens.Verify(r => r.AddAsync(It.IsAny<RefreshToken>()), Times.Never);
+		_uow.Mock.Verify(u => u.SaveChangesAsync(), Times.Once);
 	}
 
 	[Fact]

@@ -97,5 +97,5 @@ public class SongsController : BaseApiController
 
 	[HttpDelete("{id:guid}")]
 	public async Task<IActionResult> Delete ( Guid id )
-		=> ToActionResult(await _songService.DeleteAsync(id, CurrentUserId));
+		=> ToActionResult(await _songService.DeleteAsync(id, CurrentUserId, IsAdmin));
 }

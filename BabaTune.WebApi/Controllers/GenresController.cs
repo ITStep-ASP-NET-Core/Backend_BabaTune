@@ -37,30 +37,30 @@ public class GenresController : BaseApiController
 	}
 
 	[HttpPost]
-	[Authorize]
+	[Authorize(Policy = "AdminOnly")]
 	[Consumes("multipart/form-data")]
 	[RequestSizeLimit(MaxImageSize)]
 	public async Task<IActionResult> Create ( [FromForm] CreateGenreDto dto )
 		=> ToActionResult(await _genreService.CreateAsync(dto), created: true);
 
 	[HttpPut("{id:int}")]
-	[Authorize]
+	[Authorize(Policy = "AdminOnly")]
 	public async Task<IActionResult> UpdateInfo ( int id, [FromBody] UpdateGenreDto dto )
 		=> ToActionResult(await _genreService.UpdateInfoAsync(id, dto));
 
 	[HttpPut("{id:int}/image")]
-	[Authorize]
+	[Authorize(Policy = "AdminOnly")]
 	[RequestSizeLimit(MaxImageSize)]
 	public async Task<IActionResult> UpdateImage ( int id, [ImageFile] IFormFile imageFile )
 		=> ToActionResult(await _genreService.UpdateImageAsync(id, imageFile));
 
 	[HttpDelete("{id:int}/image")]
-	[Authorize]
+	[Authorize(Policy = "AdminOnly")]
 	public async Task<IActionResult> ResetImage ( int id )
 		=> ToActionResult(await _genreService.UpdateImageAsync(id, null));
 
 	[HttpDelete("{id:int}")]
-	[Authorize]
+	[Authorize(Policy = "AdminOnly")]
 	public async Task<IActionResult> Delete ( int id )
 		=> ToActionResult(await _genreService.DeleteAsync(id));
 }

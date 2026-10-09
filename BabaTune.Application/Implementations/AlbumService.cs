@@ -195,13 +195,13 @@ namespace BabaTune.Application.Implementations
 			return Result.Ok();
 		}
 
-		public async Task<Result> DeleteAsync ( Guid albumId, Guid userId )
+		public async Task<Result> DeleteAsync ( Guid albumId, Guid userId, bool IsAdmin )
 		{
 			var album = await _uow.Albums.GetByIdAsync(albumId);
 			if (album is null)
 				return Result.Fail("Album not found.");
 
-			if (album.UserId != userId)
+			if (album.UserId != userId && !IsAdmin)
 				return Result.Fail("You are not the author of this album.");
 
 			if (album.ImageUrl is not null && album.ImageUrl != DefaultAlbumImageUrl)

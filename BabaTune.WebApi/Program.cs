@@ -23,6 +23,9 @@ builder.Services.AddControllers()
 		options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
 	});
 
+builder.Services.AddAuthorizationBuilder()
+	.AddPolicy("AdminOnly", p => p.RequireRole("Admin"));
+
 builder.Services.AddAuthentication(options =>
 {
 	options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;

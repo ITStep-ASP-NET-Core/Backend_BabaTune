@@ -17,6 +17,8 @@ public abstract class BaseApiController : ControllerBase
 	protected Guid? CurrentUserIdOrNull =>
 		Guid.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var id) ? id : null;
 
+	protected bool IsAdmin => User.IsInRole("Admin");
+
 	protected static (int Page, int Size) Paging ( int pageNumber, int pageSize )
 		=> (Math.Max(pageNumber, 1), Math.Clamp(pageSize, 1, MaxPageSize));
 

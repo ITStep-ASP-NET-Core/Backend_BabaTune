@@ -256,13 +256,13 @@ namespace BabaTune.Application.Implementations
 			return Result.Ok();
 		}
 
-		public async Task<Result> DeleteAsync ( Guid songId, Guid userId )
+		public async Task<Result> DeleteAsync ( Guid songId, Guid userId, bool isAdmin )
 		{
 			var song = await _uow.Songs.GetByIdAsync(songId);
 			if(song is null)
 				return Result.Fail("Song not found.");
 
-			if(song.UserId != userId)
+			if(song.UserId != userId && !isAdmin)
 				return Result.Fail("You are not the author of this song.");
 
 			var audioUrl = song.Url;
