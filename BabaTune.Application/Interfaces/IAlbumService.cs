@@ -16,6 +16,6 @@ namespace BabaTune.Application.Interfaces
 		Task<Result> AddSongsAsync ( Guid albumId, Guid userId, ICollection<Guid> songIds );
 		Task<Result> AddSongAsync ( Guid albumId, Guid userId, Guid songId );
 		Task<Result> RemoveSongAsync ( Guid albumId, Guid userId, Guid songId );
-		Task<Result> DeleteAsync ( Guid albumId, Guid userId );
+		Task<Result> DeleteAsync ( Guid albumId, Guid userId, bool isAdmin );
 	}
 }

@@ -93,5 +93,5 @@ public class AlbumsController : BaseApiController
 
 	[HttpDelete("{id:guid}")]
 	public async Task<IActionResult> Delete ( Guid id )
-		=> ToActionResult(await _albumService.DeleteAsync(id, CurrentUserId));
+		=> ToActionResult(await _albumService.DeleteAsync(id, CurrentUserId, IsAdmin));
 }
