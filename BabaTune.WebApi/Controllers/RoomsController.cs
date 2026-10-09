@@ -59,7 +59,7 @@ public class RoomsController : BaseApiController
 
 	[HttpDelete("{id:guid}")]
 	public async Task<IActionResult> Delete ( Guid id )
-		=> ToActionResult(await _roomService.DeleteAsync(id, CurrentUserId));
+		=> ToActionResult(await _roomService.DeleteAsync(id, CurrentUserId, IsAdmin));
 
 	[HttpPost("{id:guid}/join")]
 	public async Task<IActionResult> Join ( Guid id )

@@ -12,7 +12,7 @@ namespace BabaTune.Application.Interfaces
 		Task<PagedResult<RoomCardDto>> GetFriendsRoomsAsync ( Guid userId, int pageNumber, int pageSize );
 		Task<PagedResult<RoomCardDto>> GetByCurrentSongAsync ( Guid songId, int pageNumber, int pageSize, Guid? currentUserId );
 		Task<Result<RoomDto>> CreateAsync ( CreateRoomDto dto, Guid ownerId );
-		Task<Result> DeleteAsync ( Guid roomId, Guid userId );
+		Task<Result> DeleteAsync ( Guid roomId, Guid userId, bool isAdmin );
 		Task<Result> JoinAsync ( Guid roomId, Guid userId );
 		Task<Result> LeaveAsync ( Guid roomId, Guid userId );
 		Task<Result> TransferOwnershipAsync ( Guid roomId, Guid userId, Guid newOwnerId );

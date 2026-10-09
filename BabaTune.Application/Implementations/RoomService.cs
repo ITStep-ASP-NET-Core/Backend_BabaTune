@@ -104,13 +104,16 @@ namespace BabaTune.Application.Implementations
 			return Result.Ok(created!);
 		}
 
-		public async Task<Result> DeleteAsync ( Guid roomId, Guid userId )
+		public async Task<Result> DeleteAsync ( Guid roomId, Guid userId, bool isAdmin )
 		{
-			var owned = await LoadOwnedAsync(roomId, userId);
-			if (!owned.Success)
-				return Result.Fail(owned.Error!);
+			var room = await _uow.Rooms.GetByIdAsync(roomId);
+			if(room is null)
+				return Result<Room>.Fail("Room not found.");
 
-			await DeleteRoomAsync(owned.Data!);
+			if(room.OwnerId != userId && !isAdmin)
+				return Result<Room>.Fail("You are not the owner of this room.");
+
+			await DeleteRoomAsync(room);
 			await _uow.SaveChangesAsync();
 
 			return Result.Ok();
