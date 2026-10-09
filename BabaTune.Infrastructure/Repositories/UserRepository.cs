@@ -35,5 +35,14 @@ namespace BabaTune.Infrastructure.Repositories
 			var q = _dbSet.AsNoTracking().OrderByDescending(u => u.CreatedAt);
 			return await q.ToPagedResultAsync(pageNumber, pageSize);
 		}
+
+		public async Task<Room?> GetOwnedRoomAsync ( Guid userId )
+		{
+			return await _context.Set<Room>().AsNoTracking()
+				.Include(r => r.Owner)
+				.Include(r => r.CurrentSong)
+					.ThenInclude(s => s!.User)
+				.FirstOrDefaultAsync(r => r.OwnerId == userId);
+		}
 	}
 }

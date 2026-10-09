@@ -15,6 +15,9 @@ namespace BabaTune.Infrastructure.Interfaces
 		IPlaylistRepository Playlists { get; }
 		INoticeRepository Notices { get; }
 		IListenHistoryRepository ListenHistories { get; }
+		IChatRepository Chats { get; }
+		IFriendshipRepository Friendships { get; }
+		IRoomRepository Rooms { get; }
 
 		Task SaveChangesAsync ( );
 	}

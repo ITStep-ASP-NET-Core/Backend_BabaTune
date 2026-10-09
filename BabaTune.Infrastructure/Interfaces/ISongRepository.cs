@@ -1,5 +1,6 @@
 using BabaTune.Domain.Common;
 using BabaTune.Domain.Entities;
+using Microsoft.EntityFrameworkCore;
 
 namespace BabaTune.Infrastructure.Interfaces
 {
@@ -11,5 +12,7 @@ namespace BabaTune.Infrastructure.Interfaces
 		Task<int> GetCountByAuthorAsync ( Guid userId );
 		Task<PagedResult<Song>> GetByAlbumAsync ( Guid albumId, int pageNumber, int pageSize );
 		Task<PagedResult<Song>> GetByFiltersAsync ( string? searchQuery, Guid? authorId, Guid? albumId, ICollection<int>? categoryIds, ICollection<int>? genreIds, int pageNumber, int pageSize );
+		Task<HashSet<Guid>> GetIdsByAlbumAsync ( Guid albumId );
+		Task<int> GetCountByAlbumAsync ( Guid albumId );
 	}
 }

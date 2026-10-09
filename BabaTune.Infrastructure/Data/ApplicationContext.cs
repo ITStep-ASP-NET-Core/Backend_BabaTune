@@ -144,6 +144,106 @@ namespace BabaTune.Infrastructure.Data
 					  .HasForeignKey(lh => lh.SongId)
 					  .OnDelete(DeleteBehavior.Cascade);
 			});
+			
+			modelBuilder.Entity<Friendship>(entity =>
+			{
+				entity.HasKey(f => f.Id);
+				entity.HasIndex(f => new { f.SenderId, f.RecipientId }).IsUnique();
+				entity.HasIndex(f => f.RecipientId);
+
+				entity.ToTable(t => t.HasCheckConstraint(
+					"CK_Friendship_NotSelf", "[SenderId] <> [RecipientId]"));
+
+				entity.HasOne(f => f.Sender)
+					  .WithMany()
+					  .HasForeignKey(f => f.SenderId)
+					  .OnDelete(DeleteBehavior.Restrict);
+
+				entity.HasOne(f => f.Recipient)
+					  .WithMany()
+					  .HasForeignKey(f => f.RecipientId)
+					  .OnDelete(DeleteBehavior.Restrict);
+
+				entity.HasOne(f => f.Chat)
+					  .WithOne()
+					  .HasForeignKey<Friendship>(f => f.ChatId)
+					  .OnDelete(DeleteBehavior.Restrict);
+			});
+
+			modelBuilder.Entity<Room>(entity =>
+			{
+				entity.HasKey(r => r.Id);
+				entity.HasIndex(r => r.OwnerId);
+
+				entity.HasOne(r => r.Owner)
+					  .WithOne()
+					  .HasForeignKey<Room>(r => r.OwnerId)
+					  .OnDelete(DeleteBehavior.Restrict);
+
+				entity.HasOne(r => r.Chat)
+					  .WithOne()
+					  .HasForeignKey<Room>(r => r.ChatId)
+					  .OnDelete(DeleteBehavior.Restrict);
+
+				entity.HasOne(r => r.CurrentSong)
+					  .WithMany()
+					  .HasForeignKey(r => r.CurrentSongId)
+					  .OnDelete(DeleteBehavior.ClientSetNull);
+
+				entity.HasMany(r => r.Members)
+					  .WithOne(u => u.Room)
+					  .HasForeignKey(u => u.RoomId)
+					  .OnDelete(DeleteBehavior.SetNull);
+			});
+
+			modelBuilder.Entity<Chat>(entity =>
+			{
+				entity.HasKey(c => c.Id);
+			});
+
+			modelBuilder.Entity<QueueItem>(entity =>
+			{
+				entity.HasKey(q => q.Id);
+				entity.HasIndex(q => new { q.RoomId, q.AddedAt });
+
+				entity.HasOne(q => q.Room)
+					  .WithMany(r => r.Queue)
+					  .HasForeignKey(q => q.RoomId)
+					  .OnDelete(DeleteBehavior.Cascade);
+
+				entity.HasOne(q => q.Song)
+					  .WithMany()
+					  .HasForeignKey(q => q.SongId)
+					  .OnDelete(DeleteBehavior.Restrict);
+			});
+
+			modelBuilder.Entity<Message>(entity =>
+			{
+				entity.HasKey(m => m.Id);
+
+				entity.HasDiscriminator<MessageType>("Type")
+					  .HasValue<TextMessage>(MessageType.Text)
+					  .HasValue<SongMessage>(MessageType.Song);
+
+				entity.HasOne(m => m.Chat)
+					  .WithMany(c => c.Messages)
+					  .HasForeignKey(m => m.ChatId)
+					  .OnDelete(DeleteBehavior.Cascade);
+
+				entity.HasOne(m => m.User)
+					  .WithMany()
+					  .HasForeignKey(m => m.UserId)
+					  .OnDelete(DeleteBehavior.Restrict);
+			});
+
+			modelBuilder.Entity<SongMessage>(entity =>
+			{
+				entity.HasOne(m => m.Song)
+					.WithMany()
+					.HasForeignKey(m => m.SongId)
+					.OnDelete(DeleteBehavior.Restrict);
+			});
+				
 		}
 	}
 }

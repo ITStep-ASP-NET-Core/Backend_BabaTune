@@ -17,5 +17,6 @@ namespace BabaTune.Infrastructure.Interfaces
 		Task<int> GetTotalDurationAsync ( Guid playlistId );
 		Task<int> GetSongsCountAsync ( Guid playlistId );
 		Task MoveSongAsync ( Guid playlistId, Guid songId, int newPosition );
+		Task<HashSet<Guid>> GetSongIdsAsync ( Guid playlistId );
 	}
 }
