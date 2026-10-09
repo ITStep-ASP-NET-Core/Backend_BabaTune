@@ -166,6 +166,11 @@ namespace BabaTune.Application.Implementations
 			return Result.Ok();
 		}
 
+		public async Task<Result> AddSongAsync ( Guid albumId, Guid userId, Guid songId )
+		{
+			return await AddSongsAsync(albumId, userId, [songId]);
+		}
+
 		public async Task<Result> RemoveSongAsync ( Guid albumId, Guid userId, Guid songId )
 		{
 			var album = await _uow.Albums.GetByIdAsync(albumId);
