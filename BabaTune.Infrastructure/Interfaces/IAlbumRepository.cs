@@ -13,5 +13,6 @@ namespace BabaTune.Infrastructure.Interfaces
 		Task<int> CountOwnedSongsAsync ( Guid userId, ICollection<Guid> songIds );
 		Task AddSongsAsync ( Guid albumId, ICollection<Guid> songIds );
 		Task RemoveSongAsync ( Guid albumId, Guid songId );
+		Task<HashSet<Guid>> GetSongIdsAsync ( Guid albumId );
 	}
 }

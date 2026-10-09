@@ -81,5 +81,14 @@ namespace BabaTune.Infrastructure.Repositories
 			song.AlbumId = null;
 			song.UpdatedAt = DateTime.UtcNow;
 		}
+		public async Task<HashSet<Guid>> GetSongIdsAsync ( Guid albumId )
+		{
+			return await _context.Songs
+			  .AsNoTracking()
+			  .Where(s => s.AlbumId == albumId)
+			  .OrderBy(s => s.CreatedAt)
+			  .Select(s => s.Id)
+			  .ToHashSetAsync();
+		}
 	}
 }

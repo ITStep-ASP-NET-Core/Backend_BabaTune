@@ -9,5 +9,6 @@ namespace BabaTune.Infrastructure.Interfaces
 		Task<bool> ExistsByEmailAsync ( string email );
 		Task<PagedResult<User>> SearchByNameAsync ( string query, int pageNumber, int pageSize );
 		Task<PagedResult<User>> GetAllPagedAsync ( int pageNumber, int pageSize );
+		Task<Room?> GetOwnedRoomAsync ( Guid userId );
 	}
 }
