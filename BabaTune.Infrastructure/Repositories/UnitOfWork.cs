@@ -18,6 +18,9 @@ namespace BabaTune.Infrastructure.Repositories
 		public IPlaylistRepository Playlists { get; }
 		public INoticeRepository Notices { get; }
 		public IListenHistoryRepository ListenHistories { get; }
+		public IChatRepository Chats { get; }
+		public IFriendshipRepository Friendships { get; }
+		public IRoomRepository Rooms { get; }
 
 		public UnitOfWork ( 
 			ApplicationContext context,
@@ -31,7 +34,11 @@ namespace BabaTune.Infrastructure.Repositories
 			INoticeRepository notices,
 			IListenHistoryRepository listenHistories,
 			ICategoryRepository categories,
-			IGenreRepository genres
+			IGenreRepository genres,
+			IChatRepository chats,
+			IFriendshipRepository friendships,
+			IRoomRepository rooms
+
 		)
 		{
 			_context = context;
@@ -46,6 +53,9 @@ namespace BabaTune.Infrastructure.Repositories
 			ListenHistories = listenHistories;
 			Categories = categories;
 			Genres = genres;
+			Chats = chats;
+			Friendships = friendships;
+			Rooms = rooms;
 		}
 
 		public async Task SaveChangesAsync ( )
