@@ -2,17 +2,12 @@ using BabaTune.Application.Interfaces;
 using Konscious.Security.Cryptography;
 using System.Security.Cryptography;
 using System.Text;
+using static BabaTune.Application.Common.Constants.Argon2;
 
 namespace BabaTune.Application.Implementations
 {
 	public class Argon2PasswordHasher : IPasswordHasher
 	{
-		private const int SaltSize = 16;
-		private const int HashSize = 32;
-		private const int DegreeOfParallelism = 8;
-		private const int Iterations = 4;
-		private const int MemorySize = 1024 * 128;
-
 		public string HashPassword ( string password )
 		{
 			byte[] salt = new byte[SaltSize];

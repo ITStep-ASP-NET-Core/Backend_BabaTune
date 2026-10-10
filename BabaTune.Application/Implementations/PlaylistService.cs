@@ -6,13 +6,12 @@ using BabaTune.Domain.Common;
 using BabaTune.Domain.Entities;
 using BabaTune.Infrastructure.Interfaces;
 using Microsoft.AspNetCore.Http;
+using static BabaTune.Application.Common.Constants;
 
 namespace BabaTune.Application.Implementations
 {
 	public class PlaylistService : IPlaylistService
 	{
-		private const string DefaultPlaylistImageUrl = "https://storage.babatune.app/defaults/playlist-cover.png";
-
 		private readonly IListenHistoryService _listenHistoryService;
 		private readonly IUnitOfWork _uow;
 
@@ -61,7 +60,7 @@ namespace BabaTune.Application.Implementations
 
 		public async Task<Result> CreateAsync ( CreatePlaylistDto playlistDto, Guid userId )
 		{
-			var imageUrl = DefaultPlaylistImageUrl;
+			var imageUrl = Defaults.PlaylistImageUrl;
 			if(playlistDto.ImageFile is not null)
 			{
 				await using var imageStream = playlistDto.ImageFile.OpenReadStream();
@@ -108,7 +107,7 @@ namespace BabaTune.Application.Implementations
 			if(playlist.UserId != userId)
 				return Result.Fail("You are not the owner of this playlist.");
 
-			if(playlist.ImageUrl is not null && playlist.ImageUrl != DefaultPlaylistImageUrl)
+			if(playlist.ImageUrl is not null && playlist.ImageUrl != Defaults.PlaylistImageUrl)
 				await _uow.Storage.DeleteAsync(playlist.ImageUrl);
 
 			if(imageFile is not null)
@@ -118,7 +117,7 @@ namespace BabaTune.Application.Implementations
 			}
 			else
 			{
-				playlist.ImageUrl = DefaultPlaylistImageUrl;
+				playlist.ImageUrl = Defaults.PlaylistImageUrl;
 			}
 
 			playlist.UpdatedAt = DateTime.UtcNow;
@@ -141,7 +140,7 @@ namespace BabaTune.Application.Implementations
 			if(playlist.Type == PlaylistType.Liked)
 				return Result.Fail("Liked playlist cannot be deleted.");
 
-			if(playlist.ImageUrl is not null && playlist.ImageUrl != DefaultPlaylistImageUrl)
+			if(playlist.ImageUrl is not null && playlist.ImageUrl != Defaults.PlaylistImageUrl)
 				await _uow.Storage.DeleteAsync(playlist.ImageUrl);
 
 			_uow.Playlists.Delete(playlist);
