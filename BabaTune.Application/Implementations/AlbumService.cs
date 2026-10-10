@@ -11,6 +11,7 @@ namespace BabaTune.Application.Implementations
 	public class AlbumService : IAlbumService
 	{
 		private const string DefaultAlbumImageUrl = "https://storage.babatune.app/defaults/album-cover.png";
+		private const int MaxAlbumSongs = 100;
 
 		private readonly IUnitOfWork _uow;
 
@@ -195,13 +196,13 @@ namespace BabaTune.Application.Implementations
 			return Result.Ok();
 		}
 
-		public async Task<Result> DeleteAsync ( Guid albumId, Guid userId )
+		public async Task<Result> DeleteAsync ( Guid albumId, Guid userId, bool IsAdmin )
 		{
 			var album = await _uow.Albums.GetByIdAsync(albumId);
 			if (album is null)
 				return Result.Fail("Album not found.");
 
-			if (album.UserId != userId)
+			if (album.UserId != userId && !IsAdmin)
 				return Result.Fail("You are not the author of this album.");
 
 			if (album.ImageUrl is not null && album.ImageUrl != DefaultAlbumImageUrl)
@@ -215,6 +216,9 @@ namespace BabaTune.Application.Implementations
 
 		private async Task<Result> ValidateNewSongsAsync ( Guid userId, ICollection<Guid> songIds, int currentCount )
 		{
+			if(currentCount + songIds.Count > MaxAlbumSongs)
+				return Result.Fail("Album is full.");
+
 			if (await _uow.Albums.CountOwnedSongsAsync(userId, songIds) != songIds.Count)
 				return Result.Fail("You are not the author of these songs.");
 

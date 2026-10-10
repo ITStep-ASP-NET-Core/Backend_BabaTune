@@ -32,7 +32,7 @@ public class AuthController : BaseApiController
 		var result = await _authService.LoginAsync(dto);
 		return result.Success
 			? Ok(result.Data)
-			: Problem(detail: result.Error, statusCode: StatusCodes.Status401Unauthorized);
+			: AuthFailure(result.Error);
 	}
 
 	[HttpPost("refresh")]
@@ -41,7 +41,7 @@ public class AuthController : BaseApiController
 		var result = await _authService.RefreshAsync(request.RefreshToken);
 		return result.Success
 			? Ok(result.Data)
-			: Problem(detail: result.Error, statusCode: StatusCodes.Status401Unauthorized);
+			: AuthFailure(result.Error);
 	}
 
 	[HttpPost("logout")]
@@ -50,4 +50,14 @@ public class AuthController : BaseApiController
 		await _authService.LogoutAsync(request.RefreshToken);
 		return NoContent();
 	}
+
+	private ObjectResult AuthFailure ( string? error )
+	{
+		var status = error?.Contains("blocked", StringComparison.OrdinalIgnoreCase) == true
+			? StatusCodes.Status403Forbidden
+			: StatusCodes.Status401Unauthorized;
+
+		return Problem(detail: error, statusCode: status);
+	}
 }
+ 

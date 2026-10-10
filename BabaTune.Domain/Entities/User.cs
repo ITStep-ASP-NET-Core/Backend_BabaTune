@@ -8,6 +8,8 @@ namespace BabaTune.Domain.Entities
         public string Email { get; set; } = null!;
         public string PasswordHash { get; set; } = null!;
         public bool IsChecked { get; set; } = false;
+		public bool IsBlocked { get; set; } = false;
+		public bool IsAdmin { get; set; } = false;
 		public string? AvatarUrl { get; set; }
 		public Guid? RoomId { get; set; }
 		public Room? Room { get; set; }

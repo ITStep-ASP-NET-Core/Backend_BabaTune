@@ -37,30 +37,30 @@ public class CategoriesController : BaseApiController
 	}
 
 	[HttpPost]
-	[Authorize]
+	[Authorize(Policy = "AdminOnly")]
 	[Consumes("multipart/form-data")]
 	[RequestSizeLimit(MaxImageSize)]
 	public async Task<IActionResult> Create ( [FromForm] CreateCategoryDto dto )
 		=> ToActionResult(await _categoryService.CreateAsync(dto), created: true);
 
 	[HttpPut("{id:int}")]
-	[Authorize]
+	[Authorize(Policy = "AdminOnly")]
 	public async Task<IActionResult> UpdateInfo ( int id, [FromBody] UpdateCategoryDto dto )
 		=> ToActionResult(await _categoryService.UpdateInfoAsync(id, dto));
 
 	[HttpPut("{id:int}/image")]
-	[Authorize]
+	[Authorize(Policy = "AdminOnly")]
 	[RequestSizeLimit(MaxImageSize)]
 	public async Task<IActionResult> UpdateImage ( int id, [ImageFile] IFormFile imageFile )
 		=> ToActionResult(await _categoryService.UpdateImageAsync(id, imageFile));
 
 	[HttpDelete("{id:int}/image")]
-	[Authorize]
+	[Authorize(Policy = "AdminOnly")]
 	public async Task<IActionResult> ResetImage ( int id )
 		=> ToActionResult(await _categoryService.UpdateImageAsync(id, null));
 
 	[HttpDelete("{id:int}")]
-	[Authorize]
+	[Authorize(Policy = "AdminOnly")]
 	public async Task<IActionResult> Delete ( int id )
 		=> ToActionResult(await _categoryService.DeleteAsync(id));
 }

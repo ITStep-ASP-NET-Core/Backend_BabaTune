@@ -9,6 +9,8 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddApplicationContext(builder.Configuration.GetConnectionString("DefaultConnection"));
 
+builder.Services.AddMemoryCache();
+
 builder.Services.AddUnitOfWork();
 builder.Services.AddApplicationServices();
 
@@ -22,6 +24,9 @@ builder.Services.AddControllers()
 	{
 		options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
 	});
+
+builder.Services.AddAuthorizationBuilder()
+	.AddPolicy("AdminOnly", p => p.RequireRole("Admin"));
 
 builder.Services.AddAuthentication(options =>
 {

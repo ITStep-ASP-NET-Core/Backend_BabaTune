@@ -30,20 +30,31 @@ namespace BabaTune.Application.Implementations
 				_ => throw new ArgumentOutOfRangeException(nameof(period))
 			};
 
-			var topSongIds = await _uow.ListenHistories.GetTopSongIdsAsync(from, pageNumber, pageSize);
-			var songsById = (await _uow.Songs.GetByIdsAsync(topSongIds.Items.ToHashSet())).ToDictionary(s => s.Id);
+			var ranking = await _uow.ListenHistories.GetTopSongIdsAsync(from, 1, int.MaxValue);
+			var rankedIds = ranking.Items.ToList();
 
-			var ordered = topSongIds.Items
+			var offset = (pageNumber - 1) * pageSize;
+			var pageIds = rankedIds.Skip(offset).Take(pageSize).ToList();
+
+			var songsById = pageIds.Count == 0
+				? new Dictionary<Guid, Song>()
+				: (await _uow.Songs.GetByIdsAsync(pageIds)).ToDictionary(s => s.Id);
+
+			var ranked = pageIds
 				.Where(songsById.ContainsKey)
 				.Select(id => songsById[id])
 				.ToList();
 
+			var fillerTake = pageSize - pageIds.Count;
+			var fillerSkip = Math.Max(0, offset - rankedIds.Count);
+			var filler = await _uow.Songs.GetWithoutIdsAsync(rankedIds, fillerSkip, fillerTake);
+
 			return await ToDtoPageAsync(new PagedResult<Song>
 			{
-				Items = ordered,
+				Items = ranked.Concat(filler.Items).ToList(),
 				PageNumber = pageNumber,
 				PageSize = pageSize,
-				TotalCount = topSongIds.TotalCount
+				TotalCount = rankedIds.Count + filler.TotalCount
 			}, currentUserId);
 		}
 
@@ -256,13 +267,13 @@ namespace BabaTune.Application.Implementations
 			return Result.Ok();
 		}
 
-		public async Task<Result> DeleteAsync ( Guid songId, Guid userId )
+		public async Task<Result> DeleteAsync ( Guid songId, Guid userId, bool isAdmin )
 		{
 			var song = await _uow.Songs.GetByIdAsync(songId);
 			if(song is null)
 				return Result.Fail("Song not found.");
 
-			if(song.UserId != userId)
+			if(song.UserId != userId && !isAdmin)
 				return Result.Fail("You are not the author of this song.");
 
 			var audioUrl = song.Url;

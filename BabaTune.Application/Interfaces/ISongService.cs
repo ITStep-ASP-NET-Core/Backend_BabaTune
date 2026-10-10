@@ -17,6 +17,6 @@ namespace BabaTune.Application.Interfaces
 		Task<Result> UpdateInfoAsync ( Guid songId, Guid userId, UpdateSongDto songDto );
 		Task<Result> UpdateImageAsync ( Guid songId, Guid userId, IFormFile? imageFile );
 		Task<Result> UpdateAudioAsync ( Guid songId, Guid userId, IFormFile audioFile );
-		Task<Result> DeleteAsync ( Guid songId, Guid userId );
+		Task<Result> DeleteAsync ( Guid songId, Guid userId, bool isAdmin );
 	}
 }

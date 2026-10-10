@@ -16,6 +16,7 @@ namespace BabaTune.Application.Implementations
 {
 	public class AuthService : IAuthService
 	{
+
 		private readonly IUnitOfWork _uow;
 		private readonly IPasswordHasher _passwordHasher;
 		private readonly IConfiguration _configuration;
@@ -68,6 +69,9 @@ namespace BabaTune.Application.Implementations
 			if(user is null || !_passwordHasher.VerifyPassword(dto.Password, user.PasswordHash))
 				return Result<AuthResponseDto>.Fail("Invalid email or password.");
 
+			if(user.IsBlocked)
+				return Result<AuthResponseDto>.Fail("Account is blocked.");
+
 			var response = await GenerateAuthResponseAsync(user);
 			await _uow.SaveChangesAsync();
 
@@ -83,6 +87,13 @@ namespace BabaTune.Application.Implementations
 			var user = await _uow.Users.GetByIdAsync(token.UserId);
 			if(user is null)
 				return Result<AuthResponseDto>.Fail("Invalid or expired refresh token.");
+
+			if(user.IsBlocked)
+			{
+				await _uow.RefreshTokens.RevokeAsync(token.Id);
+				await _uow.SaveChangesAsync();
+				return Result<AuthResponseDto>.Fail("Account is blocked.");
+			}
 
 			await _uow.RefreshTokens.RevokeAsync(token.Id);
 
@@ -126,12 +137,15 @@ namespace BabaTune.Application.Implementations
 			var key = new SymmetricSecurityKey(
 				Encoding.UTF8.GetBytes(_configuration["Jwt:Secret"]!));
 
-			var claims = new[]
+			var claims = new List<Claim>
 			{
-				new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
-				new Claim(ClaimTypes.Email, user.Email),
-				new Claim(ClaimTypes.Name, user.Name)
+				new(ClaimTypes.NameIdentifier, user.Id.ToString()),
+				new(ClaimTypes.Email, user.Email),
+				new(ClaimTypes.Name, user.Name)
 			};
+
+			if(user.IsAdmin)
+				claims.Add(new Claim(ClaimTypes.Role, "Admin"));
 
 			var token = new JwtSecurityToken(
 				issuer: _configuration["Jwt:Issuer"],

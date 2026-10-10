@@ -60,4 +60,26 @@ public class UsersController : BaseApiController
 	[HttpDelete("me/avatar")]
 	public async Task<IActionResult> DeleteAvatar ( )
 		=> ToActionResult(await _userService.UpdateAvatarAsync(CurrentUserId, null));
+	
+	[HttpPost("{id:guid}/block")]
+	[Authorize(Policy = "AdminOnly")]
+	public async Task<IActionResult> Block ( Guid id )
+		=> ToActionResult(await _userService.BlockAsync(CurrentUserId, id));
+
+	
+	[HttpDelete("{id:guid}/block")]
+	[Authorize(Policy = "AdminOnly")]
+	public async Task<IActionResult> Unblock ( Guid id )
+		=> ToActionResult(await _userService.UnblockAsync(id));
+
+	[HttpPut("{id:guid}/admin")]
+	[Authorize(Policy = "AdminOnly")]
+	public async Task<IActionResult> GrantAdmin ( Guid id )
+		=> ToActionResult(await _userService.GrantAdminAsync(id));
+
+	[HttpDelete("{id:guid}/admin")]
+	[Authorize(Policy = "AdminOnly")]
+	public async Task<IActionResult> RevokeAdmin ( Guid id )
+		=> ToActionResult(await _userService.RevokeAdminAsync(CurrentUserId, id));
+
 }

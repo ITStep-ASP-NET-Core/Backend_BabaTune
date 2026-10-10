@@ -22,6 +22,7 @@ namespace BabaTune.Application.ServiceProviderExtensions
 			services.AddScoped<IRoomService, RoomService>();
 			services.AddScoped<IChatService, ChatService>();
 			services.AddScoped<IFriendshipService, FriendshipService>();
+			services.AddScoped<IRecommendationService, RecommendationService>();
 		}
 	}
 }

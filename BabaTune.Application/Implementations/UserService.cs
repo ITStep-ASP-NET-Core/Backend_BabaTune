@@ -113,5 +113,70 @@ namespace BabaTune.Application.Implementations
 
 			return Result.Ok();
 		}
+
+		public Task<Result> UnblockAsync ( Guid userId ) => SetBlockedAsync(userId, false);
+
+		public Task<Result> BlockAsync ( Guid userId, Guid currentUserId ) {
+			if(userId == currentUserId)
+				return Task.FromResult(Result.Fail("You cannot block yourself."));
+
+			return SetBlockedAsync(userId, true);
+		}
+
+		public Task<Result> GrantAdminAsync ( Guid currentUserId ) => SetAdminAsync(currentUserId, true);
+
+		public Task<Result> RevokeAdminAsync ( Guid userId, Guid currentUserId )
+		{
+			if(userId == currentUserId)
+				return Task.FromResult(Result.Fail("You cannot revoke your own admin rights."));
+
+			return SetAdminAsync(userId, false);
+		}
+
+		private async Task<Result> SetBlockedAsync ( Guid userId, bool blocked )
+		{
+			var user = await _uow.Users.GetByIdAsync(userId);
+			if(user is null)
+				return Result.Fail("User not found.");
+
+			if(blocked && user.IsAdmin)
+				return Result.Fail("Administrators cannot be blocked. Revoke admin rights first.");
+
+			if(user.IsBlocked == blocked)
+				return Result.Fail(blocked ? "User is already blocked." : "User is already unblocked.");
+
+			user.IsBlocked = blocked;
+			user.UpdatedAt = DateTime.UtcNow;
+			_uow.Users.Update(user);
+
+			if(blocked)
+				await _uow.RefreshTokens.RevokeAllForUserAsync(userId);
+
+			await _uow.SaveChangesAsync();
+			return Result.Ok();
+		}
+
+		private async Task<Result> SetAdminAsync ( Guid userId, bool isAdmin )
+		{
+			var user = await _uow.Users.GetByIdAsync(userId);
+			if(user is null)
+				return Result.Fail("User not found.");
+
+			if(user.IsAdmin == isAdmin)
+				return Result.Fail(isAdmin ? "User is already an admin." : "User is already not an admin.");
+
+			if(isAdmin && user.IsBlocked)
+				return Result.Fail("Blocked user cannot be made an admin.");
+
+			user.IsAdmin = isAdmin;
+			user.UpdatedAt = DateTime.UtcNow;
+			_uow.Users.Update(user);
+
+			if(!isAdmin)
+				await _uow.RefreshTokens.RevokeAllForUserAsync(userId);
+
+			await _uow.SaveChangesAsync();
+			return Result.Ok();
+		}
 	}
 }

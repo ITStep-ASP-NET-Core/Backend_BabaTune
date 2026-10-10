@@ -8,5 +8,8 @@ namespace BabaTune.Infrastructure.Interfaces
 		Task<PagedResult<ListenHistory>> GetByUserAsync ( Guid userId, int pageNumber, int pageSize );
 		Task<PagedResult<Guid>> GetTopSongIdsAsync ( DateTime from, int pageNumber, int pageSize );
 		Task<ListenHistory?> GetEntryAsync ( Guid userId, Guid songId );
+		Task<ICollection<ListenSignal>> GetSignalsAsync ( Guid userId, int take );
+		Task<HashSet<Guid>> GetRecentSongIdsAsync ( Guid userId, int take );
+		Task<Dictionary<Guid, int>> GetListenCountsAsync ( ICollection<Guid> songIds, DateTime from );
 	}
 }

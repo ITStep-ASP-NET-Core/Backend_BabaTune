@@ -433,7 +433,7 @@ public class AlbumServiceTests
 	{
 		var album = Add(ownerId: Guid.NewGuid());
 
-		var result = await _sut.DeleteAsync(album.Id, _userId);
+		var result = await _sut.DeleteAsync(album.Id, _userId, false);
 
 		Assert.False(result.Success);
 		_uow.Albums.Verify(a => a.Delete(It.IsAny<Album>()), Times.Never);
@@ -444,7 +444,7 @@ public class AlbumServiceTests
 	{
 		var album = Add(image: "https://cloud/c.png");
 
-		var result = await _sut.DeleteAsync(album.Id, _userId);
+		var result = await _sut.DeleteAsync(album.Id, _userId, false);
 
 		Assert.True(result.Success);
 		_uow.Storage.Verify(s => s.DeleteAsync("https://cloud/c.png"), Times.Once);
@@ -456,7 +456,7 @@ public class AlbumServiceTests
 	{
 		var album = Add();
 
-		await _sut.DeleteAsync(album.Id, _userId);
+		await _sut.DeleteAsync(album.Id, _userId, false);
 
 		_uow.Storage.Verify(s => s.DeleteAsync(It.IsAny<string>()), Times.Never);
 	}

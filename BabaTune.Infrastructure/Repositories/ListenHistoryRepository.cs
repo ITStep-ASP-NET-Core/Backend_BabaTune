@@ -51,12 +51,52 @@ namespace BabaTune.Infrastructure.Repositories
 				PageSize = pageSize
 			};
 		}
+
 		public async Task<ListenHistory?> GetEntryAsync ( Guid userId, Guid songId )
 		{
 			return await _dbSet
 				.Where(l => l.UserId == userId && l.SongId == songId)
 				.OrderByDescending(l => l.ListenedAt)
 				.FirstOrDefaultAsync();
+		}
+
+		public async Task<ICollection<ListenSignal>> GetSignalsAsync ( Guid userId, int take )
+		{
+			return await _dbSet.AsNoTracking()
+				.Where(l => l.UserId == userId)
+				.OrderByDescending(l => l.ListenedAt)
+				.Take(take)
+				.Select(l => new ListenSignal
+				{
+					SongId = l.SongId,
+					ListenedAt = l.ListenedAt,
+					PlayedPercent = l.PlayedPercent,
+					IsLiked = l.IsLiked,
+					GenreIds = l.Song!.Genres.Select(g => g.Id).ToList(),
+					CategoryIds = l.Song!.Categories.Select(c => c.Id).ToList()
+				})
+				.ToListAsync();
+		}
+
+		public async Task<HashSet<Guid>> GetRecentSongIdsAsync ( Guid userId, int take )
+		{
+			var ids = await _dbSet.AsNoTracking()
+				.Where(l => l.UserId == userId)
+				.OrderByDescending(l => l.ListenedAt)
+				.Select(l => l.SongId)
+				.Take(take)
+				.ToListAsync();
+
+			return ids.ToHashSet();
+		}
+
+		public async Task<Dictionary<Guid, int>> GetListenCountsAsync ( ICollection<Guid> songIds, DateTime from )
+		{
+			return await _dbSet.AsNoTracking()
+				.Where(l => l.ListenedAt >= from && songIds.Contains(l.SongId))
+				.GroupBy(l => l.SongId)
+				.Select(g => new { SongId = g.Key, Count = g.Count() })
+				.ToDictionaryAsync(x => x.SongId, x => x.Count);
 		}
 	}
 }

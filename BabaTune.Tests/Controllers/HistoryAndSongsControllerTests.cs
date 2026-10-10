@@ -164,7 +164,7 @@ public class SongsControllerTests
 	public async Task Delete_NotAuthor_Returns403 ( )
 	{
 		var id = Guid.NewGuid();
-		_service.Setup(s => s.DeleteAsync(id, _userId)).ReturnsAsync(Result.Fail("You are not the author of this song."));
+		_service.Setup(s => s.DeleteAsync(id, _userId, false)).ReturnsAsync(Result.Fail("You are not the author of this song."));
 
 		var result = await _sut.Delete(id);
 
