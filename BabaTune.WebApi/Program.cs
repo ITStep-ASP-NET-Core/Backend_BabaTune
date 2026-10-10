@@ -9,6 +9,8 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddApplicationContext(builder.Configuration.GetConnectionString("DefaultConnection"));
 
+builder.Services.AddMemoryCache();
+
 builder.Services.AddUnitOfWork();
 builder.Services.AddApplicationServices();
 
