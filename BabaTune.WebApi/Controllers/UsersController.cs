@@ -70,7 +70,7 @@ public class UsersController : BaseApiController
 	[HttpDelete("{id:guid}/block")]
 	[Authorize(Policy = "AdminOnly")]
 	public async Task<IActionResult> Unblock ( Guid id )
-		=> ToActionResult(await _userService.UnblockAsync(CurrentUserId, id));
+		=> ToActionResult(await _userService.UnblockAsync(id));
 
 	[HttpPut("{id:guid}/admin")]
 	[Authorize(Policy = "AdminOnly")]

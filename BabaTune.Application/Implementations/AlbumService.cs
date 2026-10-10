@@ -11,6 +11,7 @@ namespace BabaTune.Application.Implementations
 	public class AlbumService : IAlbumService
 	{
 		private const string DefaultAlbumImageUrl = "https://storage.babatune.app/defaults/album-cover.png";
+		private const int MaxAlbumSongs = 100;
 
 		private readonly IUnitOfWork _uow;
 
@@ -215,6 +216,9 @@ namespace BabaTune.Application.Implementations
 
 		private async Task<Result> ValidateNewSongsAsync ( Guid userId, ICollection<Guid> songIds, int currentCount )
 		{
+			if(currentCount + songIds.Count > MaxAlbumSongs)
+				return Result.Fail("Album is full.");
+
 			if (await _uow.Albums.CountOwnedSongsAsync(userId, songIds) != songIds.Count)
 				return Result.Fail("You are not the author of these songs.");
 

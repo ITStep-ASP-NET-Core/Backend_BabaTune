@@ -30,20 +30,31 @@ namespace BabaTune.Application.Implementations
 				_ => throw new ArgumentOutOfRangeException(nameof(period))
 			};
 
-			var topSongIds = await _uow.ListenHistories.GetTopSongIdsAsync(from, pageNumber, pageSize);
-			var songsById = (await _uow.Songs.GetByIdsAsync(topSongIds.Items.ToHashSet())).ToDictionary(s => s.Id);
+			var ranking = await _uow.ListenHistories.GetTopSongIdsAsync(from, 1, int.MaxValue);
+			var rankedIds = ranking.Items.ToList();
 
-			var ordered = topSongIds.Items
+			var offset = (pageNumber - 1) * pageSize;
+			var pageIds = rankedIds.Skip(offset).Take(pageSize).ToList();
+
+			var songsById = pageIds.Count == 0
+				? new Dictionary<Guid, Song>()
+				: (await _uow.Songs.GetByIdsAsync(pageIds)).ToDictionary(s => s.Id);
+
+			var ranked = pageIds
 				.Where(songsById.ContainsKey)
 				.Select(id => songsById[id])
 				.ToList();
 
+			var fillerTake = pageSize - pageIds.Count;
+			var fillerSkip = Math.Max(0, offset - rankedIds.Count);
+			var filler = await _uow.Songs.GetWithoutIdsAsync(rankedIds, fillerSkip, fillerTake);
+
 			return await ToDtoPageAsync(new PagedResult<Song>
 			{
-				Items = ordered,
+				Items = ranked.Concat(filler.Items).ToList(),
 				PageNumber = pageNumber,
 				PageSize = pageSize,
-				TotalCount = topSongIds.TotalCount
+				TotalCount = rankedIds.Count + filler.TotalCount
 			}, currentUserId);
 		}
 

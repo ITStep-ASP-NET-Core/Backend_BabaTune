@@ -305,7 +305,7 @@ public class RoomServiceTests
     [Fact]
     public async Task Delete_Missing_Fails()
     {
-        var result = await _sut.DeleteAsync(Guid.NewGuid(), _userId);
+        var result = await _sut.DeleteAsync(Guid.NewGuid(), _userId, false);
 
         Assert.False(result.Success);
         Assert.Equal("Room not found.", result.Error);
@@ -316,7 +316,7 @@ public class RoomServiceTests
     {
         var room = Add(ownerId: Guid.NewGuid());
 
-        var result = await _sut.DeleteAsync(room.Id, _userId);
+        var result = await _sut.DeleteAsync(room.Id, _userId, false);
 
         Assert.False(result.Success);
         Assert.Equal("You are not the owner of this room.", result.Error);
@@ -330,7 +330,7 @@ public class RoomServiceTests
         var chat = new Chat { Id = room.ChatId };
         _uow.Chats.Setup(c => c.GetByIdAsync(room.ChatId)).ReturnsAsync(chat);
 
-        var result = await _sut.DeleteAsync(room.Id, _userId);
+        var result = await _sut.DeleteAsync(room.Id, _userId, false);
 
         Assert.True(result.Success);
         _uow.Rooms.Verify(r => r.Delete(room), Times.Once);
@@ -343,7 +343,7 @@ public class RoomServiceTests
     {
         var room = Add();
 
-        var result = await _sut.DeleteAsync(room.Id, _userId);
+        var result = await _sut.DeleteAsync(room.Id, _userId, false);
 
         Assert.True(result.Success);
         _uow.Rooms.Verify(r => r.Delete(room), Times.Once);

@@ -11,5 +11,6 @@ namespace BabaTune.Infrastructure.Interfaces
 		Task<int> GetSubscriptionsCountAsync ( Guid subscriberId );
 		Task<PagedResult<Subscribe>> GetSubscribersAsync ( Guid subscribedToId, int pageNumber, int pageSize );
 		Task<int> GetSubscribersCountAsync ( Guid subscribedToId );
+		Task<HashSet<Guid>> GetSubscribedToIdsAsync ( Guid subscriberId );
 	}
 }
