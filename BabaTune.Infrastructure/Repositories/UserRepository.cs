@@ -44,5 +44,10 @@ namespace BabaTune.Infrastructure.Repositories
 					.ThenInclude(s => s!.User)
 				.FirstOrDefaultAsync(r => r.OwnerId == userId);
 		}
+
+		public async Task<HashSet<Guid>> GetAllIdsAsync ( )
+		{
+			return await _dbSet.AsNoTracking().Select(u => u.Id).ToHashSetAsync();
+		}
 	}
 }
