@@ -14,5 +14,8 @@ namespace BabaTune.Infrastructure.Interfaces
 		Task<PagedResult<Song>> GetByFiltersAsync ( string? searchQuery, Guid? authorId, Guid? albumId, ICollection<int>? categoryIds, ICollection<int>? genreIds, int pageNumber, int pageSize );
 		Task<HashSet<Guid>> GetIdsByAlbumAsync ( Guid albumId );
 		Task<int> GetCountByAlbumAsync ( Guid albumId );
+		Task<(List<Song> Items, int TotalCount)> GetWithoutIdsAsync ( ICollection<Guid> ids, int skip, int take );
+		Task<ICollection<Song>> GetCandidatesAsync ( Guid userId, ICollection<int> genreIds, ICollection<int> categoryIds, ICollection<Guid> excludeIds, int take );
+		Task<ICollection<Song>> GetSubscriptionCandidatesAsync ( ICollection<Guid> authorIds, ICollection<Guid> excludeIds, int take );
 	}
 }

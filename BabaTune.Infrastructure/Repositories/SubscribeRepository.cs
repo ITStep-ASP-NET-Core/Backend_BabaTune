@@ -52,5 +52,13 @@ namespace BabaTune.Infrastructure.Repositories
 		{
 			return await _dbSet.CountAsync(s => s.SubscribedToId == subscribedToId);
 		}
+
+		public async Task<HashSet<Guid>> GetSubscribedToIdsAsync ( Guid subscriberId )
+		{
+			return await _dbSet.AsNoTracking()
+				.Where(s => s.SubscriberId == subscriberId)
+				.Select(s => s.SubscribedToId)
+				.ToHashSetAsync();
+		}
 	}
 }

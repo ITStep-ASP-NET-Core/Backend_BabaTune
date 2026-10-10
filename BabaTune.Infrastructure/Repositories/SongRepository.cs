@@ -120,5 +120,45 @@ namespace BabaTune.Infrastructure.Repositories
 
 			return (items, total);
 		}
+
+		public async Task<ICollection<Song>> GetCandidatesAsync ( Guid userId, ICollection<int> genreIds, ICollection<int> categoryIds, ICollection<Guid> excludeIds, int take )
+		{
+			var query = _dbSet.AsNoTracking()
+				.Where(s => s.UserId != userId)
+				.Where(s => !excludeIds.Contains(s.Id))
+				.Where(s => s.Genres.Any(g => genreIds.Contains(g.Id)) || s.Categories.Any(c => categoryIds.Contains(c.Id)));
+
+			var newest = await query
+				.Include(s => s.Genres)
+				.Include(s => s.Categories)
+				.OrderByDescending(s => s.CreatedAt)
+				.Take(take / 2)
+				.AsSplitQuery()
+				.ToListAsync();
+
+			var newestIds = newest.Select(s => s.Id).ToList();
+
+			var random = await query
+				.Where(s => !newestIds.Contains(s.Id))
+				.Include(s => s.Genres)
+				.Include(s => s.Categories)
+				.OrderBy(s => EF.Functions.Random())
+				.Take(take - newest.Count)
+				.AsSplitQuery()
+				.ToListAsync();
+
+			newest.AddRange(random);
+			return newest;
+		}
+
+		public async Task<ICollection<Song>> GetSubscriptionCandidatesAsync ( ICollection<Guid> authorIds, ICollection<Guid> excludeIds, int take )
+		{
+			return await _dbSet.AsNoTracking()
+				.Where(s => s.UserId != null && authorIds.Contains(s.UserId.Value))
+				.Where(s => !excludeIds.Contains(s.Id))
+				.OrderByDescending(s => s.CreatedAt)
+				.Take(take)
+				.ToListAsync();
+		}
 	}
 }
