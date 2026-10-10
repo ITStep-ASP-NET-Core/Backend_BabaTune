@@ -2,14 +2,13 @@ using BabaTune.Application.DTO.Notices;
 using BabaTune.Application.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using static BabaTune.Application.Common.Constants;
 
 namespace BabaTune.WebApi.Controllers;
 
 [Route("api/notices")]
 public class NoticesController : BaseApiController
 {
-	private const long MaxImageSize = 5L * 1024 * 1024;
-
 	private readonly INoticeService _noticeService;
 
 	public NoticesController ( INoticeService noticeService )
@@ -42,7 +41,7 @@ public class NoticesController : BaseApiController
 	[HttpPost("server")]
 	[Authorize(Policy = "AdminOnly")]
 	[Consumes("multipart/form-data")]
-	[RequestSizeLimit(MaxImageSize)]
+	[RequestSizeLimit(Limits.MaxImageSize)]
 	public async Task<IActionResult> CreateServer ( [FromForm] CreateServerNoticeDto dto )
 	{
 		if(ValidateImage(dto.ImageFile) is { } error)
