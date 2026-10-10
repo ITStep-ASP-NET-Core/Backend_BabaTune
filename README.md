@@ -1,47 +1,43 @@
 # 🎵 BabaTune
 
-Backend музыкального стримингового сервиса на **ASP.NET Core Web API**.
+Backend for a music streaming service built on **ASP.NET Core Web API**.
 
-## Стек
+## Stack
 
 - **.NET / ASP.NET Core Web API**
-- **Entity Framework Core** — доступ к данным
-- **JWT** — access/refresh токены
-- **Argon2id** — хеширование паролей (Konscious.Security.Cryptography)
-- **Firebase Storage** — хранение аудио и обложек
-- **xUnit + Moq** — тесты
+- **Entity Framework Core** — data access
+- **JWT** — access/refresh tokens
+- **Argon2id** — password hashing (Konscious.Security.Cryptography)
+- **Firebase Storage** — audio and cover storage
+- **xUnit + Moq** — tests
 
-## Архитектура
+## Architecture
 
-Слоистая архитектура:
+Layered architecture:
 
 ```
-Domain          — сущности, enum'ы
-Application     — сервисы, DTO, интерфейсы, мапперы
-Infrastructure  — репозитории, EF Core, Firebase Storage
-WebApi          — контроллеры
+Domain          — entities, enums
+Application     — services, DTOs, interfaces, mappers
+Infrastructure  — repositories, EF Core, Firebase Storage
+WebApi          — controllers
 ```
 
-Паттерны: **Repository + Unit of Work**, DTO-мапперы, единый `Result` для обработки ошибок без исключений.
+Patterns: **Repository + Unit of Work**, DTO mappers, a unified `Result` for error handling without exceptions.
 
-## Основные модули
+## Main Modules
 
-- **Auth** — регистрация, логин, refresh/logout токенов
-- **Users** — профиль, поиск, аватар
-- **Songs** — CRUD, фильтры, топ по прослушиваниям (день/неделя/месяц)
-- **Albums / Playlists** — включая автосоздание плейлиста "Liked", переупорядочивание треков
-- **Genres / Categories** — справочники с картинками
-- **Subscriptions** — подписки на авторов
-- **Notices** — уведомления
-- **Listen History** — история и рейтинг популярности треков
+- **Auth** — registration, login, refresh/logout tokens
+- **Users** — profile, search, avatar
+- **Songs** — CRUD, filters, top by listens (day/week/month)
+- **Albums / Playlists** — including automatic creation of the "Liked" playlist and track reordering
+- **Genres / Categories** — reference lists with images
+- **Subscriptions** — subscriptions to authors
+- **Notices** — notifications
+- **Listen History** — listening history and track popularity ranking
 
-## Особенности реализации
+## Implementation Notes
 
-- Медиафайлы (аудио, обложки) загружаются в облако, в БД хранится только ссылка
-- При ошибке сохранения загруженные в облако файлы удаляются (rollback)
-
-
-
-- Дефолтные обложки не удаляются из хранилища
-- Пагинация — единый `PagedResult<T>` для всех списков
-
+- Media files (audio, covers) are uploaded to the cloud; only the link is stored in the database
+- If saving fails, files already uploaded to the cloud are deleted (rollback)
+- Default covers are never deleted from storage
+- Pagination — a single `PagedResult<T>` for all lists
