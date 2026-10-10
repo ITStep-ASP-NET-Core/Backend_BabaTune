@@ -5,13 +5,12 @@ using BabaTune.Application.Mappers;
 using BabaTune.Domain.Common;
 using BabaTune.Domain.Entities;
 using BabaTune.Infrastructure.Interfaces;
+using static BabaTune.Application.Common.Constants;
 
 namespace BabaTune.Application.Implementations
 {
 	public class NoticeService : INoticeService
 	{
-		private const string ServerNoticeImageFolder = "notices/images";
-
 		private readonly IUnitOfWork _uow;
 
 		public NoticeService ( IUnitOfWork uow )
@@ -129,7 +128,7 @@ namespace BabaTune.Application.Implementations
 			if(dto.ImageFile is not null)
 			{
 				await using var imageStream = dto.ImageFile.OpenReadStream();
-				imageUrl = await _uow.Storage.UploadAsync(imageStream, dto.ImageFile.FileName, dto.ImageFile.ContentType, ServerNoticeImageFolder);
+				imageUrl = await _uow.Storage.UploadAsync(imageStream, dto.ImageFile.FileName, dto.ImageFile.ContentType, Folders.NoticeImages);
 			}
 
 			try

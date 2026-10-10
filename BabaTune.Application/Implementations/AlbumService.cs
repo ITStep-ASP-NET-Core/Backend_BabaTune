@@ -5,14 +5,12 @@ using BabaTune.Application.Mappers;
 using BabaTune.Domain.Common;
 using BabaTune.Infrastructure.Interfaces;
 using Microsoft.AspNetCore.Http;
+using static BabaTune.Application.Common.Constants;
 
 namespace BabaTune.Application.Implementations
 {
 	public class AlbumService : IAlbumService
 	{
-		private const string DefaultAlbumImageUrl = "https://storage.babatune.app/defaults/album-cover.png";
-		private const int MaxAlbumSongs = 100;
-
 		private readonly IUnitOfWork _uow;
 		private readonly INoticeService _noticeService;
 
@@ -65,7 +63,7 @@ namespace BabaTune.Application.Implementations
 			if (!validation.Success)
 				return validation;
 
-			var imageUrl = DefaultAlbumImageUrl;
+			var imageUrl = Defaults.AlbumImageUrl;
 
 			try
 			{
@@ -86,7 +84,7 @@ namespace BabaTune.Application.Implementations
 			}
 			catch
 			{
-				if (imageUrl != DefaultAlbumImageUrl)
+				if (imageUrl != Defaults.AlbumImageUrl)
 					await DeleteQuietlyAsync(imageUrl);
 
 				throw;
@@ -121,7 +119,7 @@ namespace BabaTune.Application.Implementations
 			if (album.UserId != userId)
 				return Result.Fail("You are not the author of this album.");
 
-			if (album.ImageUrl is not null && album.ImageUrl != DefaultAlbumImageUrl)
+			if (album.ImageUrl is not null && album.ImageUrl != Defaults.AlbumImageUrl)
 				await _uow.Storage.DeleteAsync(album.ImageUrl);
 
 			if (imageFile is not null)
@@ -131,7 +129,7 @@ namespace BabaTune.Application.Implementations
 			}
 			else
 			{
-				album.ImageUrl = DefaultAlbumImageUrl;
+				album.ImageUrl = Defaults.AlbumImageUrl;
 			}
 
 			album.UpdatedAt = DateTime.UtcNow;
@@ -208,7 +206,7 @@ namespace BabaTune.Application.Implementations
 			if (album.UserId != userId && !IsAdmin)
 				return Result.Fail("You are not the author of this album.");
 
-			if (album.ImageUrl is not null && album.ImageUrl != DefaultAlbumImageUrl)
+			if (album.ImageUrl is not null && album.ImageUrl != Defaults.AlbumImageUrl)
 				await _uow.Storage.DeleteAsync(album.ImageUrl);
 
 			_uow.Albums.Delete(album);
@@ -219,7 +217,7 @@ namespace BabaTune.Application.Implementations
 
 		private async Task<Result> ValidateNewSongsAsync ( Guid userId, ICollection<Guid> songIds, int currentCount )
 		{
-			if(currentCount + songIds.Count > MaxAlbumSongs)
+			if(currentCount + songIds.Count > Limits.MaxAlbumSongs)
 				return Result.Fail("Album is full.");
 
 			if (await _uow.Albums.CountOwnedSongsAsync(userId, songIds) != songIds.Count)

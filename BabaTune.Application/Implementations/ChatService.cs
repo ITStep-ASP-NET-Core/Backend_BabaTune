@@ -6,13 +6,12 @@ using BabaTune.Application.Mappers;
 using BabaTune.Domain.Common;
 using BabaTune.Domain.Entities;
 using BabaTune.Infrastructure.Interfaces;
+using static BabaTune.Application.Common.Constants;
 
 namespace BabaTune.Application.Implementations
 {
 	public class ChatService : IChatService
 	{
-		private const int MaxTextLength = 2000;
-
 		private readonly IUnitOfWork _uow;
 		private readonly INoticeService _noticeService;
 
@@ -63,7 +62,7 @@ namespace BabaTune.Application.Implementations
 			if (string.IsNullOrEmpty(trimmed))
 				return Result<MessageDto>.Fail("Message text is required.");
 
-			if (trimmed.Length > MaxTextLength)
+			if (trimmed.Length > Limits.MaxTextLength)
 				return Result<MessageDto>.Fail("Message text is too long.");
 
 			if (!await _uow.Chats.IsParticipantAsync(chatId, userId))

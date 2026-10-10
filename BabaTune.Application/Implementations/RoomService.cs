@@ -10,7 +10,6 @@ namespace BabaTune.Application.Implementations
 {
 	public class RoomService : IRoomService
 	{
-
 		private readonly IUnitOfWork _uow;
 		private readonly INoticeService _noticeService;
 
