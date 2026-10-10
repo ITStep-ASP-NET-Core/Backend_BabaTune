@@ -1,4 +1,5 @@
 using BabaTune.Application.Implementations;
+using BabaTune.Application.Interfaces;
 using BabaTune.Domain.Common;
 using BabaTune.Domain.Entities;
 using BabaTune.Tests.Common;
@@ -10,11 +11,12 @@ public class SubscribeServiceTests
 {
     private readonly UowMock _uow = new();
     private readonly SubscribeService _sut;
-    private readonly Guid _userId = Guid.NewGuid();
+	private readonly Mock<INoticeService> _notices = new();
+	private readonly Guid _userId = Guid.NewGuid();
 
     public SubscribeServiceTests()
     {
-        _sut = new SubscribeService(_uow.Object);
+        _sut = new SubscribeService(_uow.Object, _notices.Object);
     }
 
     [Fact]

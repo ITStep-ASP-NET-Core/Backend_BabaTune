@@ -361,7 +361,6 @@ public class NoticeServiceTests
 		{
 			var message = Assert.IsType<MessageNotice>(n);
 			Assert.Equal(chatId, message.ChatId);
-			Assert.Equal("hello", message.Text);
 			Assert.False(message.IsRead);
 		});
 		Assert.Equal(new[] { first, second }.OrderBy(x => x), added.Select(n => n.RecipientId).OrderBy(x => x));

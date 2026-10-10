@@ -1,22 +1,23 @@
 using BabaTune.Application.Common;
 using BabaTune.Application.DTO.Albums;
 using BabaTune.Application.Implementations;
+using BabaTune.Application.Interfaces;
 using BabaTune.Domain.Entities;
 using BabaTune.Tests.Common;
 using Moq;
-using static BabaTune.Application.Common.Constatnts;
 
 namespace BabaTune.Tests.Services;
 
 public class AlbumServiceTests
 {
 	private readonly UowMock _uow = new();
+	private readonly Mock<INoticeService> _notices = new();
 	private readonly AlbumService _sut;
 	private readonly Guid _userId = Guid.NewGuid();
 
 	public AlbumServiceTests ( )
 	{
-		_sut = new AlbumService(_uow.Object);
+		_sut = new AlbumService(_uow.Object, _notices.Object);
 	}
 
 	private Album Add ( Guid? ownerId = null, string image = Defaults.AlbumImage )
@@ -65,7 +66,7 @@ public class AlbumServiceTests
 	[Fact]
 	public async Task Create_TooManySongs_Fails ( )
 	{
-		var result = await _sut.CreateAsync(new CreateAlbumDto { SongIds = NewIds(Limits.MaxAlbumSongs + 1) }, _userId);
+		var result = await _sut.CreateAsync(new CreateAlbumDto { SongIds = NewIds(Constants.Limits.MaxAlbumSongs + 1) }, _userId);
 
 		Assert.False(result.Success);
 		Assert.Equal("Album is full.", result.Error);
@@ -263,7 +264,7 @@ public class AlbumServiceTests
 	{
 		var album = Add();
 		AllSongsOwned();
-		_uow.Albums.Setup(a => a.GetSongsCountAsync(album.Id)).ReturnsAsync(Limits.MaxAlbumSongs);
+		_uow.Albums.Setup(a => a.GetSongsCountAsync(album.Id)).ReturnsAsync(Constants.Limits.MaxAlbumSongs);
 
 		var result = await _sut.AddSongAsync(album.Id, _userId, Guid.NewGuid());
 
@@ -323,7 +324,7 @@ public class AlbumServiceTests
 	{
 		var album = Add();
 		AllSongsOwned();
-		_uow.Albums.Setup(a => a.GetSongsCountAsync(album.Id)).ReturnsAsync(Limits.MaxAlbumSongs - 1);
+		_uow.Albums.Setup(a => a.GetSongsCountAsync(album.Id)).ReturnsAsync(Constants.Limits.MaxAlbumSongs - 1);
 
 		var result = await _sut.AddSongsAsync(album.Id, _userId, NewIds(2));
 
@@ -459,5 +460,50 @@ public class AlbumServiceTests
 		await _sut.DeleteAsync(album.Id, _userId, false);
 
 		_uow.Storage.Verify(s => s.DeleteAsync(It.IsAny<string>()), Times.Never);
+	}
+
+	[Fact]
+	public async Task Delete_AdminNotAuthor_Succeeds ( )
+	{
+		var album = Add(ownerId: Guid.NewGuid());
+
+		var result = await _sut.DeleteAsync(album.Id, _userId, true);
+
+		Assert.True(result.Success);
+		_uow.Albums.Verify(a => a.Delete(album), Times.Once);
+	}
+
+	[Fact]
+	public async Task Create_Valid_NotifiesAboutNewAlbumAfterSave ( )
+	{
+		Album? added = null;
+		AllSongsOwned();
+		_uow.Albums.Setup(a => a.AddAsync(It.IsAny<Album>())).Callback<Album>(a => added = a).Returns(Task.CompletedTask);
+
+		var result = await _sut.CreateAsync(new CreateAlbumDto { SongIds = NewIds(1) }, _userId);
+
+		Assert.True(result.Success);
+		Assert.NotNull(added);
+		_notices.Verify(n => n.NotifyNewAlbumAsync(_userId, added.Id), Times.Once);
+	}
+
+	[Fact]
+	public async Task Create_Invalid_DoesNotNotify ( )
+	{
+		var result = await _sut.CreateAsync(new CreateAlbumDto { SongIds = [] }, _userId);
+
+		Assert.False(result.Success);
+		_notices.Verify(n => n.NotifyNewAlbumAsync(It.IsAny<Guid>(), It.IsAny<Guid>()), Times.Never);
+	}
+
+	[Fact]
+	public async Task Create_WhenSaveFails_DoesNotNotify ( )
+	{
+		AllSongsOwned();
+		_uow.Mock.Setup(u => u.SaveChangesAsync()).ThrowsAsync(new InvalidOperationException());
+
+		await Assert.ThrowsAsync<InvalidOperationException>(( ) => _sut.CreateAsync(new CreateAlbumDto { SongIds = NewIds(1) }, _userId));
+
+		_notices.Verify(n => n.NotifyNewAlbumAsync(It.IsAny<Guid>(), It.IsAny<Guid>()), Times.Never);
 	}
 }
