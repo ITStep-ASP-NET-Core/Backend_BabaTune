@@ -141,29 +141,128 @@ public class SongServiceTests
 		Assert.False(result.Items.Single(i => i.Id == other.Id).IsLiked);
 	}
 
+	private void SetupRanking ( params Guid[] ids )
+	{
+		_uow.ListenHistories
+			.Setup(l => l.GetTopSongIdsAsync(It.IsAny<DateTime>(), 1, int.MaxValue))
+			.ReturnsAsync(new PagedResult<Guid>
+			{
+				Items = ids.ToList(),
+				PageNumber = 1,
+				PageSize = int.MaxValue,
+				TotalCount = ids.Length
+			});
+	}
+
+	private void SetupRankedSongs ( params Song[] songs )
+	{
+		ICollection<Song> loaded = songs.ToList();
+		_uow.Songs.Setup(s => s.GetByIdsAsync(It.IsAny<ICollection<Guid>>())).ReturnsAsync(loaded);
+	}
+
+	private void SetupFiller ( int skip, int take, List<Song> items, int total )
+	{
+		_uow.Songs
+			.Setup(s => s.GetWithoutIdsAsync(It.IsAny<ICollection<Guid>>(), skip, take))
+			.ReturnsAsync((items, total));
+	}
+
 	[Fact]
 	public async Task GetTop_KeepsRankingOrderAndSkipsMissingSongs ( )
 	{
 		var first = TestData.NewSong();
 		var second = TestData.NewSong();
-		var missingId = Guid.NewGuid();
-		ICollection<Song> songs = new List<Song> { first, second };
 
-		_uow.ListenHistories
-			.Setup(l => l.GetTopSongIdsAsync(It.IsAny<DateTime>(), 1, 10))
-			.ReturnsAsync(new PagedResult<Guid>
-			{
-				Items = new List<Guid> { second.Id, missingId, first.Id },
-				PageNumber = 1,
-				PageSize = 10,
-				TotalCount = 3
-			});
-		_uow.Songs.Setup(s => s.GetByIdsAsync(It.IsAny<ICollection<Guid>>())).ReturnsAsync(songs);
+		SetupRanking(second.Id, Guid.NewGuid(), first.Id);
+		SetupRankedSongs(first, second);
+		SetupFiller(0, 7, [], 0);
 
 		var result = await _sut.GetTopAsync(TopPeriod.Week, 1, 10, null);
 
 		Assert.Equal(new[] { second.Id, first.Id }, result.Items.Select(i => i.Id).ToArray());
 		Assert.Equal(3, result.TotalCount);
+	}
+
+	[Fact]
+	public async Task GetTop_RankingShorterThanPage_AppendsNewestSongsAfterRanked ( )
+	{
+		var ranked = TestData.NewSong();
+		var fillerA = TestData.NewSong();
+		var fillerB = TestData.NewSong();
+
+		SetupRanking(ranked.Id);
+		SetupRankedSongs(ranked);
+		SetupFiller(0, 2, [fillerA, fillerB], 5);
+
+		var result = await _sut.GetTopAsync(TopPeriod.Week, 1, 3, null);
+
+		Assert.Equal(new[] { ranked.Id, fillerA.Id, fillerB.Id }, result.Items.Select(i => i.Id).ToArray());
+		Assert.Equal(6, result.TotalCount);
+	}
+
+	[Fact]
+	public async Task GetTop_NoRanking_FillsWholePageWithoutLoadingRankedSongs ( )
+	{
+		var first = TestData.NewSong();
+		var second = TestData.NewSong();
+
+		SetupRanking();
+		SetupFiller(0, 2, [first, second], 4);
+
+		var result = await _sut.GetTopAsync(TopPeriod.Week, 1, 2, null);
+
+		Assert.Equal(new[] { first.Id, second.Id }, result.Items.Select(i => i.Id).ToArray());
+		Assert.Equal(4, result.TotalCount);
+		_uow.Songs.Verify(s => s.GetByIdsAsync(It.IsAny<ICollection<Guid>>()), Times.Never);
+	}
+
+	[Fact]
+	public async Task GetTop_PageBeyondRanking_SkipsFillerByOffset ( )
+	{
+		var first = TestData.NewSong();
+		var second = TestData.NewSong();
+
+		SetupRanking(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid());
+		SetupFiller(1, 2, [first, second], 10);
+
+		var result = await _sut.GetTopAsync(TopPeriod.Week, 3, 2, null);
+
+		Assert.Equal(2, result.Items.Count());
+		Assert.Equal(13, result.TotalCount);
+		_uow.Songs.Verify(s => s.GetWithoutIdsAsync(It.IsAny<ICollection<Guid>>(), 1, 2), Times.Once);
+	}
+
+	[Fact]
+	public async Task GetTop_LastRankedPageIsPartial_FillsRemainderFromStart ( )
+	{
+		var last = TestData.NewSong();
+		var filler = TestData.NewSong();
+
+		SetupRanking(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), last.Id);
+		SetupRankedSongs(last);
+		SetupFiller(0, 1, [filler], 7);
+
+		var result = await _sut.GetTopAsync(TopPeriod.Week, 3, 2, null);
+
+		Assert.Equal(new[] { last.Id, filler.Id }, result.Items.Select(i => i.Id).ToArray());
+		Assert.Equal(12, result.TotalCount);
+	}
+
+	[Fact]
+	public async Task GetTop_FullRankedPage_RequestsNoFillerItems ( )
+	{
+		var first = TestData.NewSong();
+		var second = TestData.NewSong();
+
+		SetupRanking(first.Id, second.Id, Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid());
+		SetupRankedSongs(first, second);
+		SetupFiller(0, 0, [], 3);
+
+		var result = await _sut.GetTopAsync(TopPeriod.Week, 1, 2, null);
+
+		Assert.Equal(2, result.Items.Count());
+		Assert.Equal(8, result.TotalCount);
+		_uow.Songs.Verify(s => s.GetWithoutIdsAsync(It.IsAny<ICollection<Guid>>(), 0, 0), Times.Once);
 	}
 
 	[Fact]
@@ -446,7 +545,7 @@ public class SongServiceTests
 	{
 		var song = Add(authorId: Guid.NewGuid());
 
-		var result = await _sut.DeleteAsync(song.Id, _userId);
+		var result = await _sut.DeleteAsync(song.Id, _userId, false);
 
 		Assert.False(result.Success);
 		Assert.Equal("You are not the author of this song.", result.Error);
@@ -459,7 +558,7 @@ public class SongServiceTests
 	{
 		var song = Add(url: "https://cloud/a.mp3", image: "https://cloud/c.png");
 
-		var result = await _sut.DeleteAsync(song.Id, _userId);
+		var result = await _sut.DeleteAsync(song.Id, _userId, false);
 
 		Assert.True(result.Success);
 		_uow.Storage.Verify(s => s.DeleteAsync("https://cloud/a.mp3"), Times.Once);
@@ -472,7 +571,7 @@ public class SongServiceTests
 	{
 		var song = Add(url: "https://cloud/a.mp3");
 
-		await _sut.DeleteAsync(song.Id, _userId);
+		await _sut.DeleteAsync(song.Id, _userId, false);
 
 		_uow.Storage.Verify(s => s.DeleteAsync("https://cloud/a.mp3"), Times.Once);
 		_uow.Storage.Verify(s => s.DeleteAsync(Defaults.SongImage), Times.Never);
@@ -531,7 +630,7 @@ public class SongServiceTests
 		var song = Add(url: "https://cloud/a.mp3", image: "https://cloud/c.png");
 		_uow.Mock.Setup(u => u.SaveChangesAsync()).ThrowsAsync(new InvalidOperationException());
 
-		await Assert.ThrowsAsync<InvalidOperationException>(( ) => _sut.DeleteAsync(song.Id, _userId));
+		await Assert.ThrowsAsync<InvalidOperationException>(( ) => _sut.DeleteAsync(song.Id, _userId, false));
 
 		_uow.Storage.Verify(s => s.DeleteAsync(It.IsAny<string>()), Times.Never);
 	}
@@ -542,7 +641,7 @@ public class SongServiceTests
 		var song = Add(url: "https://cloud/a.mp3");
 		_uow.Storage.Setup(s => s.DeleteAsync(It.IsAny<string>())).ThrowsAsync(new IOException());
 
-		var result = await _sut.DeleteAsync(song.Id, _userId);
+		var result = await _sut.DeleteAsync(song.Id, _userId, false);
 
 		Assert.True(result.Success);
 		_uow.Mock.Verify(u => u.SaveChangesAsync(), Times.Once);

@@ -96,9 +96,29 @@ namespace BabaTune.Infrastructure.Repositories
 				.Select(i => i.Id)
 				.ToHashSetAsync();
 		}
+
 		public async Task<int> GetCountByAlbumAsync ( Guid albumId )
 		{
 			return await _context.Songs.CountAsync(s => s.AlbumId == albumId);
+		}
+
+		public async Task<(List<Song> Items, int TotalCount)> GetWithoutIdsAsync ( ICollection<Guid> ids, int skip, int take )
+		{
+			var query = _dbSet.AsNoTracking().Where(s => !ids.Contains(s.Id));
+
+			var total = await query.CountAsync();
+			if(take <= 0)
+				return ([], total);
+
+			var items = await query
+				.Include(s => s.User)
+				.OrderByDescending(s => s.CreatedAt)
+				.ThenBy(s => s.Id)
+				.Skip(skip)
+				.Take(take)
+				.ToListAsync();
+
+			return (items, total);
 		}
 	}
 }
