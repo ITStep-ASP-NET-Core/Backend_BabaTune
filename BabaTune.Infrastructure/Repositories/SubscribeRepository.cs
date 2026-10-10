@@ -60,5 +60,13 @@ namespace BabaTune.Infrastructure.Repositories
 				.Select(s => s.SubscribedToId)
 				.ToHashSetAsync();
 		}
+
+		public async Task<HashSet<Guid>> GetSubscriberIdsAsync ( Guid subscribedToId )
+		{
+			return await _dbSet.AsNoTracking()
+				.Where(s => s.SubscribedToId == subscribedToId)
+				.Select(s => s.SubscriberId)
+				.ToHashSetAsync();
+		}
 	}
 }
