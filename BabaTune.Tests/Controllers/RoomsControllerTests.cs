@@ -150,7 +150,7 @@ public class RoomsControllerTests
     [Fact]
     public async Task Delete_Success_ReturnsNoContent()
     {
-        _service.Setup(s => s.DeleteAsync(_roomId, _userId)).ReturnsAsync(Result.Ok());
+        _service.Setup(s => s.DeleteAsync(_roomId, _userId, false)).ReturnsAsync(Result.Ok());
 
         var result = await _sut.Delete(_roomId);
 
@@ -160,7 +160,7 @@ public class RoomsControllerTests
     [Fact]
     public async Task Delete_NotOwner_Returns403()
     {
-        _service.Setup(s => s.DeleteAsync(_roomId, _userId)).ReturnsAsync(Result.Fail("You are not the owner of this room."));
+        _service.Setup(s => s.DeleteAsync(_roomId, _userId, false)).ReturnsAsync(Result.Fail("You are not the owner of this room."));
 
         var result = await _sut.Delete(_roomId);
 
