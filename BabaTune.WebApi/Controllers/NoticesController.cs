@@ -1,4 +1,6 @@
+using BabaTune.Application.DTO.Notices;
 using BabaTune.Application.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace BabaTune.WebApi.Controllers;
@@ -6,6 +8,8 @@ namespace BabaTune.WebApi.Controllers;
 [Route("api/notices")]
 public class NoticesController : BaseApiController
 {
+	private const long MaxImageSize = 5L * 1024 * 1024;
+
 	private readonly INoticeService _noticeService;
 
 	public NoticesController ( INoticeService noticeService )
@@ -14,10 +18,17 @@ public class NoticesController : BaseApiController
 	}
 
 	[HttpGet]
-	public async Task<IActionResult> Get ( [FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 20 )
+	public async Task<IActionResult> GetAll ( [FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 20 )
 	{
 		var (page, size) = Paging(pageNumber, pageSize);
-		return Ok(await _noticeService.GetByRecipientAsync(CurrentUserId, page, size));
+		return Ok(await _noticeService.GetAllAsync(CurrentUserId, page, size));
+	}
+
+	[HttpGet("unread")]
+	public async Task<IActionResult> GetUnread ( [FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 20 )
+	{
+		var (page, size) = Paging(pageNumber, pageSize);
+		return Ok(await _noticeService.GetUnreadAsync(CurrentUserId, page, size));
 	}
 
 	[HttpGet("unread-count")]
@@ -27,4 +38,26 @@ public class NoticesController : BaseApiController
 	[HttpPost("{id:guid}/read")]
 	public async Task<IActionResult> MarkAsRead ( Guid id )
 		=> ToActionResult(await _noticeService.MarkAsReadAsync(id, CurrentUserId));
+
+	[HttpPost("server")]
+	[Authorize(Policy = "AdminOnly")]
+	[Consumes("multipart/form-data")]
+	[RequestSizeLimit(MaxImageSize)]
+	public async Task<IActionResult> CreateServer ( [FromForm] CreateServerNoticeDto dto )
+	{
+		if(ValidateImage(dto.ImageFile) is { } error)
+			return error;
+
+		return ToActionResult(await _noticeService.CreateServerAsync(dto), created: true);
+	}
+
+	[HttpPut("server/{id:guid}")]
+	[Authorize(Policy = "AdminOnly")]
+	public async Task<IActionResult> UpdateServer ( Guid id, [FromBody] UpdateServerNoticeDto dto )
+		=> ToActionResult(await _noticeService.UpdateServerAsync(id, dto));
+
+	[HttpDelete("server/{id:guid}")]
+	[Authorize(Policy = "AdminOnly")]
+	public async Task<IActionResult> DeleteServer ( Guid id )
+		=> ToActionResult(await _noticeService.DeleteServerAsync(id));
 }
