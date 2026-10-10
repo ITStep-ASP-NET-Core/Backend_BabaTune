@@ -10,5 +10,6 @@ namespace BabaTune.Infrastructure.Interfaces
 		Task AddMessageAsync ( Message message );
 		Task<bool> IsParticipantAsync ( Guid chatId, Guid userId );
 		Task<Guid?> GetPeerIdAsync ( Guid chatId, Guid userId );
+		Task<HashSet<Guid>> GetParticipantIdsAsync ( Guid chatId );
 	}
 }

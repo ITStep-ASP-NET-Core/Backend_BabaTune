@@ -1,5 +1,6 @@
 using BabaTune.Application.DTO.Rooms;
 using BabaTune.Application.Implementations;
+using BabaTune.Application.Interfaces;
 using BabaTune.Domain.Common;
 using BabaTune.Domain.Entities;
 using BabaTune.Tests.Common;
@@ -11,11 +12,12 @@ public class RoomServiceTests
 {
     private readonly UowMock _uow = new();
     private readonly RoomService _sut;
-    private readonly Guid _userId = Guid.NewGuid();
+	private readonly Mock<INoticeService> _notices = new();
+	private readonly Guid _userId = Guid.NewGuid();
 
     public RoomServiceTests()
     {
-        _sut = new RoomService(_uow.Object);
+        _sut = new RoomService(_uow.Object, _notices.Object);
         _uow.Playlists
             .Setup(p => p.GetLikedSongIdsAsync(It.IsAny<Guid>(), It.IsAny<ICollection<Guid>>()))
             .ReturnsAsync(new HashSet<Guid>());

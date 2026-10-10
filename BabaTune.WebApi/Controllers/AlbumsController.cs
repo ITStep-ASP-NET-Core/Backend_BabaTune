@@ -4,14 +4,13 @@ using BabaTune.Application.Validation;
 using BabaTune.WebApi.Requests;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using static BabaTune.Application.Common.Constants;
 
 namespace BabaTune.WebApi.Controllers;
 
 [Route("api/albums")]
 public class AlbumsController : BaseApiController
 {
-	private const long MaxImageSize = 5L * 1024 * 1024;
-
 	private readonly IAlbumService _albumService;
 	private readonly ISongService _songService;
 
@@ -52,7 +51,7 @@ public class AlbumsController : BaseApiController
 
 	[HttpPost]
 	[Consumes("multipart/form-data")]
-	[RequestSizeLimit(MaxImageSize)]
+	[RequestSizeLimit(Limits.MaxImageSize)]
 	public async Task<IActionResult> Create ( [FromForm] CreateAlbumDto dto )
 	{
 		if(ValidateImage(dto.ImageFile) is { } error)
@@ -66,7 +65,7 @@ public class AlbumsController : BaseApiController
 		=> ToActionResult(await _albumService.UpdateInfoAsync(id, CurrentUserId, dto));
 
 	[HttpPut("{id:guid}/image")]
-	[RequestSizeLimit(MaxImageSize)]
+	[RequestSizeLimit(Limits.MaxImageSize)]
 	public async Task<IActionResult> UpdateImage ( Guid id, [ImageFile] IFormFile imageFile )
 	{
 		if(ValidateImage(imageFile, required: true) is { } error)

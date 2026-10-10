@@ -10,12 +10,13 @@ namespace BabaTune.Application.Implementations
 {
 	public class RoomService : IRoomService
 	{
-
 		private readonly IUnitOfWork _uow;
+		private readonly INoticeService _noticeService;
 
-		public RoomService ( IUnitOfWork uow )
+		public RoomService ( IUnitOfWork uow, INoticeService noticeService )
 		{
 			_uow = uow;
+			_noticeService = noticeService;
 		}
 
 		public async Task<RoomDto?> GetByIdAsync ( Guid roomId, Guid? currentUserId )
@@ -98,6 +99,7 @@ namespace BabaTune.Application.Implementations
 			await _uow.Rooms.AddMemberAsync(room.Id, ownerId);
 
 			await _uow.SaveChangesAsync();
+			await _noticeService.NotifyNewRoomAsync(ownerId, room.Id);
 
 			var created = await GetByIdAsync(room.Id, ownerId);
 

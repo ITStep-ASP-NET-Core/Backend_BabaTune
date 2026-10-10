@@ -3,15 +3,13 @@ using BabaTune.Application.Interfaces;
 using BabaTune.Application.Validation;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using static BabaTune.Application.Common.Constants;
 
 namespace BabaTune.WebApi.Controllers;
 
 [Route("api/songs")]
 public class SongsController : BaseApiController
 {
-	private const long MaxAudioSize = 50L * 1024 * 1024;
-	private const long MaxImageSize = 5L * 1024 * 1024;
-
 	private readonly ISongService _songService;
 
 	public SongsController ( ISongService songService )
@@ -53,8 +51,8 @@ public class SongsController : BaseApiController
 
 	[HttpPost]
 	[Consumes("multipart/form-data")]
-	[RequestSizeLimit(MaxAudioSize + MaxImageSize)]
-	[RequestFormLimits(MultipartBodyLengthLimit = MaxAudioSize + MaxImageSize)]
+	[RequestSizeLimit(Limits.MaxAudioSize + Limits.MaxImageSize)]
+	[RequestFormLimits(MultipartBodyLengthLimit = Limits.MaxAudioSize + Limits.MaxImageSize)]
 	public async Task<IActionResult> Create ( [FromForm] CreateSongDto dto )
 	{
 		if (ValidateAudio(dto.AudioFile, required: true) is { } audioError)
@@ -71,7 +69,7 @@ public class SongsController : BaseApiController
 		=> ToActionResult(await _songService.UpdateInfoAsync(id, CurrentUserId, dto));
 
 	[HttpPut("{id:guid}/image")]
-	[RequestSizeLimit(MaxImageSize)]
+	[RequestSizeLimit(Limits.MaxImageSize)]
 	public async Task<IActionResult> UpdateImage ( Guid id, [ImageFile] IFormFile imageFile )
 	{
 		if (ValidateImage(imageFile, required: true) is { } error)
@@ -85,8 +83,8 @@ public class SongsController : BaseApiController
 		=> ToActionResult(await _songService.UpdateImageAsync(id, CurrentUserId, null));
 
 	[HttpPut("{id:guid}/audio")]
-	[RequestSizeLimit(MaxAudioSize)]
-	[RequestFormLimits(MultipartBodyLengthLimit = MaxAudioSize)]
+	[RequestSizeLimit(Limits.MaxAudioSize)]
+	[RequestFormLimits(MultipartBodyLengthLimit = Limits.MaxAudioSize)]
 	public async Task<IActionResult> UpdateAudio ( Guid id, [AudioFile] IFormFile audioFile )
 	{
 		if (ValidateAudio(audioFile, required: true) is { } error)

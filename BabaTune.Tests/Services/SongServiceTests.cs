@@ -1,5 +1,6 @@
 using BabaTune.Application.DTO.Songs;
 using BabaTune.Application.Implementations;
+using BabaTune.Application.Interfaces;
 using BabaTune.Domain.Common;
 using BabaTune.Domain.Entities;
 using BabaTune.Tests.Common;
@@ -11,11 +12,12 @@ public class SongServiceTests
 {
 	private readonly UowMock _uow = new();
 	private readonly SongService _sut;
+	private readonly Mock<INoticeService> _notices = new();
 	private readonly Guid _userId = Guid.NewGuid();
 
 	public SongServiceTests ( )
 	{
-		_sut = new SongService(_uow.Object);
+		_sut = new SongService(_uow.Object, _notices.Object);
 	}
 
 	private Song Add ( Guid? authorId = null, string url = "https://cloud/song.mp3", string image = Defaults.SongImage )

@@ -6,18 +6,19 @@ using BabaTune.Domain.Common;
 using BabaTune.Domain.Entities;
 using BabaTune.Infrastructure.Interfaces;
 using Microsoft.AspNetCore.Http;
+using static BabaTune.Application.Common.Constants;
 
 namespace BabaTune.Application.Implementations
 {
 	public class SongService : ISongService
 	{
-		private const string DefaultSongImageUrl = "https://storage.babatune.app/defaults/song-cover.png";
-
 		private readonly IUnitOfWork _uow;
+		private readonly INoticeService _noticeService;
 
-		public SongService ( IUnitOfWork uow )
+		public SongService ( IUnitOfWork uow, INoticeService noticeService )
 		{
 			_uow = uow;
+			_noticeService = noticeService;
 		}
 
 		public async Task<PagedResult<SongDto>> GetTopAsync ( TopPeriod period, int pageNumber, int pageSize, Guid? currentUserId )
@@ -146,7 +147,7 @@ namespace BabaTune.Application.Implementations
 				var audioUrl = await _uow.Storage.UploadAsync(audioStream, songDto.AudioFile.FileName, songDto.AudioFile.ContentType, "songs/audio");
 				uploadedUrls.Add(audioUrl);
 
-				var imageUrl = DefaultSongImageUrl;
+				var imageUrl = Defaults.SongImageUrl;
 				if(songDto.ImageFile is not null)
 				{
 					await using var imageStream = songDto.ImageFile.OpenReadStream();
@@ -162,6 +163,7 @@ namespace BabaTune.Application.Implementations
 
 				await _uow.Songs.AddAsync(song);
 				await _uow.SaveChangesAsync();
+				await _noticeService.NotifyNewSongAsync(userId, song.Id);
 
 				return Result.Ok();
 			}
@@ -205,7 +207,7 @@ namespace BabaTune.Application.Implementations
 
 			var oldImageUrl = song.ImageUrl;
 			string? uploadedUrl = null;
-			var newImageUrl = DefaultSongImageUrl;
+			var newImageUrl = Defaults.SongImageUrl;
 
 			if(imageFile is not null)
 			{
@@ -228,7 +230,7 @@ namespace BabaTune.Application.Implementations
 				throw;
 			}
 
-			if(oldImageUrl != DefaultSongImageUrl)
+			if(oldImageUrl != Defaults.SongImageUrl)
 				await DeleteQuietlyAsync(oldImageUrl);
 
 			return Result.Ok();
@@ -282,7 +284,7 @@ namespace BabaTune.Application.Implementations
 			_uow.Songs.Delete(song);
 			await _uow.SaveChangesAsync();
 
-			await DeleteQuietlyAsync(audioUrl, imageUrl != DefaultSongImageUrl ? imageUrl : null);
+			await DeleteQuietlyAsync(audioUrl, imageUrl != Defaults.SongImageUrl ? imageUrl : null);
 
 			return Result.Ok();
 		}

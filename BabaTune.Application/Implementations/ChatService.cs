@@ -6,18 +6,19 @@ using BabaTune.Application.Mappers;
 using BabaTune.Domain.Common;
 using BabaTune.Domain.Entities;
 using BabaTune.Infrastructure.Interfaces;
+using static BabaTune.Application.Common.Constants;
 
 namespace BabaTune.Application.Implementations
 {
 	public class ChatService : IChatService
 	{
-		private const int MaxTextLength = 2000;
-
 		private readonly IUnitOfWork _uow;
+		private readonly INoticeService _noticeService;
 
-		public ChatService ( IUnitOfWork uow )
+		public ChatService ( IUnitOfWork uow, INoticeService noticeService )
 		{
 			_uow = uow;
+			_noticeService = noticeService;
 		}
 
 		public async Task<Result<PagedResult<MessageDto>>> GetMessagesAsync ( Guid chatId, Guid userId, int pageNumber, int pageSize )
@@ -61,7 +62,7 @@ namespace BabaTune.Application.Implementations
 			if (string.IsNullOrEmpty(trimmed))
 				return Result<MessageDto>.Fail("Message text is required.");
 
-			if (trimmed.Length > MaxTextLength)
+			if (trimmed.Length > Limits.MaxTextLength)
 				return Result<MessageDto>.Fail("Message text is too long.");
 
 			if (!await _uow.Chats.IsParticipantAsync(chatId, userId))
@@ -83,7 +84,7 @@ namespace BabaTune.Application.Implementations
 				UpdatedAt = now
 			};
 
-			return await SaveAsync(message, user, null, trimmed);
+			return await SaveAsync(message, user, null);
 		}
 
 		public async Task<Result<MessageDto>> SendSongAsync ( Guid chatId, Guid userId, Guid songId )
@@ -113,13 +114,22 @@ namespace BabaTune.Application.Implementations
 
 			var isLiked = (await _uow.Playlists.GetLikedSongIdsAsync(userId, [songId])).Contains(songId);
 
-			return await SaveAsync(message, user, SongMapper.ToDto(song, isLiked), song.Name);
+			return await SaveAsync(message, user, SongMapper.ToDto(song, isLiked));
 		}
 
-		private async Task<Result<MessageDto>> SaveAsync ( Message message, User user, SongDto? song, string preview )
+		private async Task<Result<MessageDto>> SaveAsync ( Message message, User user, SongDto? song )
 		{
 			await _uow.Chats.AddMessageAsync(message);
 			await _uow.SaveChangesAsync();
+
+			var participants = await _uow.Chats.GetParticipantIdsAsync(message.ChatId);
+			var recipients = participants.Where(id => id != message.UserId).ToList();
+
+			try
+			{
+				await _noticeService.NotifyMessageAsync(message.ChatId, recipients);
+			}
+			catch { }
 
 			return Result.Ok(MessageMapper.ToDto(message, UserMapper.ToSummaryDto(user), song));
 		}

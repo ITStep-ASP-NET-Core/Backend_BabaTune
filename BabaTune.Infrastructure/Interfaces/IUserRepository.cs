@@ -10,5 +10,6 @@ namespace BabaTune.Infrastructure.Interfaces
 		Task<PagedResult<User>> SearchByNameAsync ( string query, int pageNumber, int pageSize );
 		Task<PagedResult<User>> GetAllPagedAsync ( int pageNumber, int pageSize );
 		Task<Room?> GetOwnedRoomAsync ( Guid userId );
+		Task<HashSet<Guid>> GetAllIdsAsync ( );
 	}
 }

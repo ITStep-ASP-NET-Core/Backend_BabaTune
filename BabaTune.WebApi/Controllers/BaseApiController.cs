@@ -2,6 +2,7 @@ using System.Security.Claims;
 using BabaTune.Application.Common;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using static BabaTune.Application.Common.Constants;
 
 namespace BabaTune.WebApi.Controllers;
 
@@ -10,8 +11,6 @@ namespace BabaTune.WebApi.Controllers;
 [Produces("application/json")]
 public abstract class BaseApiController : ControllerBase
 {
-	private const int MaxPageSize = 100;
-
 	protected Guid CurrentUserId => Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
 
 	protected Guid? CurrentUserIdOrNull =>
@@ -20,7 +19,7 @@ public abstract class BaseApiController : ControllerBase
 	protected bool IsAdmin => User.IsInRole("Admin");
 
 	protected static (int Page, int Size) Paging ( int pageNumber, int pageSize )
-		=> (Math.Max(pageNumber, 1), Math.Clamp(pageSize, 1, MaxPageSize));
+		=> (Math.Max(pageNumber, 1), Math.Clamp(pageSize, 1, Limits.MaxPageSize));
 
 	protected IActionResult OkOrNotFound<T> ( T? value ) where T : class
 		=> value is null ? NotFound() : Ok(value);

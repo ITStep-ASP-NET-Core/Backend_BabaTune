@@ -65,5 +65,33 @@ namespace BabaTune.Infrastructure.Repositories
 
 			return pair.SenderId == userId ? pair.RecipientId : pair.SenderId;
 		}
+		public async Task<HashSet<Guid>> GetParticipantIdsAsync ( Guid chatId )
+		{
+			var ids = new HashSet<Guid>();
+
+			var friendship = await _context.Set<Friendship>().AsNoTracking()
+				.Where(f => f.ChatId == chatId)
+				.Select(f => new { f.SenderId, f.RecipientId })
+				.FirstOrDefaultAsync();
+
+			if(friendship is not null)
+			{
+				ids.Add(friendship.SenderId);
+				ids.Add(friendship.RecipientId);
+			}
+
+			var room = await _context.Set<Room>().AsNoTracking()
+				.Where(r => r.ChatId == chatId)
+				.Select(r => new { r.OwnerId, r.Members })
+				.FirstOrDefaultAsync();
+
+			if(room is not null)
+			{
+				ids.Add(room.OwnerId);
+				ids.UnionWith(room.Members.Select(m => m.Id));
+			}
+
+			return ids;
+		}
 	}
 }

@@ -3,14 +3,13 @@ using BabaTune.Application.Interfaces;
 using BabaTune.Application.Validation;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using static BabaTune.Application.Common.Constants;
 
 namespace BabaTune.WebApi.Controllers;
 
 [Route("api/categories")]
 public class CategoriesController : BaseApiController
 {
-	private const long MaxImageSize = 5L * 1024 * 1024;
-
 	private readonly ICategoryService _categoryService;
 
 	public CategoriesController ( ICategoryService categoryService )
@@ -39,7 +38,7 @@ public class CategoriesController : BaseApiController
 	[HttpPost]
 	[Authorize(Policy = "AdminOnly")]
 	[Consumes("multipart/form-data")]
-	[RequestSizeLimit(MaxImageSize)]
+	[RequestSizeLimit(Limits.MaxImageSize)]
 	public async Task<IActionResult> Create ( [FromForm] CreateCategoryDto dto )
 		=> ToActionResult(await _categoryService.CreateAsync(dto), created: true);
 
@@ -50,7 +49,7 @@ public class CategoriesController : BaseApiController
 
 	[HttpPut("{id:int}/image")]
 	[Authorize(Policy = "AdminOnly")]
-	[RequestSizeLimit(MaxImageSize)]
+	[RequestSizeLimit(Limits.MaxImageSize)]
 	public async Task<IActionResult> UpdateImage ( int id, [ImageFile] IFormFile imageFile )
 		=> ToActionResult(await _categoryService.UpdateImageAsync(id, imageFile));
 

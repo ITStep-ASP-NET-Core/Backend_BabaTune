@@ -6,30 +6,12 @@ using BabaTune.Domain.Common;
 using BabaTune.Domain.Entities;
 using BabaTune.Infrastructure.Interfaces;
 using Microsoft.Extensions.Caching.Memory;
+using static BabaTune.Application.Common.Constants.Recommendations;
 
 namespace BabaTune.Application.Implementations
 {
 	public class RecommendationService : IRecommendationService
 	{
-		private const int PoolSize = 200;
-		private const int ExplorationReserve = 20;
-		private const int HistoryTake = 400;
-		private const int CandidatesTake = 400;
-		private const int TopTagsCount = 5;
-		private const int MaxPerAuthorInPool = 3;
-		private const int MaxPerAuthorPerPage = 2;
-		private const int SubscriptionPercent = 20;
-		private const int SubscriptionCandidates = 200;
-		private const int SubscriptionPerAuthor = 3;
-		private const int SubscriptionShortlist = 10;
-		private const int SubscriptionFreshHours = 48;
-		private const int PopularListSize = 300;
-		private const double ExplorationScore = 0.15;
-		private const double PopularityWeight = 0.5;
-		private static readonly TimeSpan PoolTtl = TimeSpan.FromMinutes(5);
-		private static readonly TimeSpan PopularTtl = TimeSpan.FromMinutes(10);
-		private static readonly TimeSpan SeenSubscriptionsTtl = TimeSpan.FromMinutes(30);
-
 		private static readonly SemaphoreSlim[] Gates =
 			Enumerable.Range(0, 64).Select(_ => new SemaphoreSlim(1, 1)).ToArray();
 

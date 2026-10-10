@@ -1,4 +1,5 @@
 using BabaTune.Application.Implementations;
+using BabaTune.Application.Interfaces;
 using BabaTune.Domain.Common;
 using BabaTune.Domain.Entities;
 using BabaTune.Tests.Common;
@@ -10,11 +11,12 @@ public class FriendshipServiceTests
 {
     private readonly UowMock _uow = new();
     private readonly FriendshipService _sut;
-    private readonly Guid _userId = Guid.NewGuid();
+	private readonly Mock<INoticeService> _notices = new();
+	private readonly Guid _userId = Guid.NewGuid();
 
     public FriendshipServiceTests()
     {
-        _sut = new FriendshipService(_uow.Object);
+        _sut = new FriendshipService(_uow.Object, _notices.Object);
     }
 
     private User AddUser()

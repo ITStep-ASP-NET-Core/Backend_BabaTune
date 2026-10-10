@@ -5,13 +5,12 @@ using BabaTune.Application.Mappers;
 using BabaTune.Domain.Common;
 using BabaTune.Infrastructure.Interfaces;
 using Microsoft.AspNetCore.Http;
+using static BabaTune.Application.Common.Constants;
 
 namespace BabaTune.Application.Implementations
 {
 	public class CategoryService : ICategoryService
 	{
-		private const string DefaultCategoryImageUrl = "https://storage.babatune.app/defaults/category-cover.png";
-
 		private readonly IUnitOfWork _uow;
 
 		public CategoryService ( IUnitOfWork uow )
@@ -45,7 +44,7 @@ namespace BabaTune.Application.Implementations
 
 		public async Task<Result> CreateAsync ( CreateCategoryDto dto )
 		{
-			var imageUrl = DefaultCategoryImageUrl;
+			var imageUrl = Defaults.CategoryImageUrl;
 			if (dto.ImageFile is not null)
 			{
 				await using var imageStream = dto.ImageFile.OpenReadStream();
@@ -80,7 +79,7 @@ namespace BabaTune.Application.Implementations
 			if (category is null)
 				return Result.Fail("Category not found.");
 
-			if (category.ImageUrl is not null && category.ImageUrl != DefaultCategoryImageUrl)
+			if (category.ImageUrl is not null && category.ImageUrl != Defaults.CategoryImageUrl)
 				await _uow.Storage.DeleteAsync(category.ImageUrl);
 
 			if (imageFile is not null)
@@ -90,7 +89,7 @@ namespace BabaTune.Application.Implementations
 			}
 			else
 			{
-				category.ImageUrl = DefaultCategoryImageUrl;
+				category.ImageUrl = Defaults.CategoryImageUrl;
 			}
 
 			_uow.Categories.Update(category);
@@ -105,7 +104,7 @@ namespace BabaTune.Application.Implementations
 			if (category is null)
 				return Result.Fail("Category not found.");
 
-			if (category.ImageUrl is not null && category.ImageUrl != DefaultCategoryImageUrl)
+			if (category.ImageUrl is not null && category.ImageUrl != Defaults.CategoryImageUrl)
 				await _uow.Storage.DeleteAsync(category.ImageUrl);
 
 			_uow.Categories.Delete(category);

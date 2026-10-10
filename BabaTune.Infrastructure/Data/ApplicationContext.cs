@@ -116,17 +116,91 @@ namespace BabaTune.Infrastructure.Data
 
 			modelBuilder.Entity<Notice>(entity =>
 			{
-				entity.HasKey(n => n.Id);
+				entity.HasIndex(n => new { n.RecipientId, n.IsRead, n.CreatedAt });
 
-				entity.HasOne(n => n.Sender)
-					  .WithMany()
-					  .HasForeignKey(n => n.SenderId)
-					  .OnDelete(DeleteBehavior.SetNull);
+				entity.HasDiscriminator<NoticeType>("Type")
+					  .HasValue<FriendRequestNotice>(NoticeType.FriendRequest)
+					  .HasValue<MessageNotice>(NoticeType.Message)
+					  .HasValue<NewSongNotice>(NoticeType.NewSong)
+					  .HasValue<NewAlbumNotice>(NoticeType.NewAlbum)
+					  .HasValue<NewRoomNotice>(NoticeType.NewRoom)
+					  .HasValue<NewSubscriptionNotice>(NoticeType.NewSubscription)
+					  .HasValue<ServerNotice>(NoticeType.Server);
 
 				entity.HasOne(n => n.Recipient)
 					  .WithMany()
 					  .HasForeignKey(n => n.RecipientId)
+					  .OnDelete(DeleteBehavior.Cascade);
+			});
+
+			modelBuilder.Entity<FriendRequestNotice>(entity =>
+			{
+				entity.HasIndex(n => new { n.FriendShipId }).IsUnique();
+
+				entity.HasOne(n => n.Sender)
+					  .WithMany()
+					  .HasForeignKey(n => n.SenderId)
 					  .OnDelete(DeleteBehavior.Restrict);
+
+				entity.HasOne(n => n.FriendShip)
+					.WithMany()
+					.HasForeignKey(n => n.FriendShipId)
+					.OnDelete(DeleteBehavior.Cascade);
+			});
+
+			modelBuilder.Entity<MessageNotice>(entity =>
+			{
+				entity.HasOne(n => n.Chat)
+					  .WithMany()
+					  .HasForeignKey(n => n.ChatId)
+					  .OnDelete(DeleteBehavior.Cascade);
+			});
+
+			modelBuilder.Entity<NewSongNotice>(entity =>
+			{
+				entity.HasOne(n => n.Song)
+					  .WithMany()
+					  .HasForeignKey(n => n.SongId)
+					  .OnDelete(DeleteBehavior.Restrict);
+
+				entity.HasOne(n => n.Author)
+					  .WithMany()
+					  .HasForeignKey(n => n.AuthorId)
+					  .OnDelete(DeleteBehavior.Restrict);
+			});
+
+			modelBuilder.Entity<NewAlbumNotice>(entity =>
+			{
+				entity.HasOne(n => n.Album)
+					  .WithMany()
+					  .HasForeignKey(n => n.AlbumId)
+					  .OnDelete(DeleteBehavior.Restrict);
+
+				entity.HasOne(n => n.Author)
+					  .WithMany()
+					  .HasForeignKey(n => n.AuthorId)
+					  .OnDelete(DeleteBehavior.Restrict);
+			});
+
+			modelBuilder.Entity<NewRoomNotice>(entity =>
+			{
+				entity.HasOne(n => n.Owner)
+					  .WithMany()
+					  .HasForeignKey(n => n.OwnerId)
+					  .OnDelete(DeleteBehavior.Restrict);
+
+				entity.HasOne(n => n.Room)
+					  .WithMany()
+					  .HasForeignKey(n => n.RoomId)
+					  .OnDelete(DeleteBehavior.Restrict);
+			});
+
+			modelBuilder.Entity<NewSubscriptionNotice>(entity =>
+			{
+				entity.HasOne(n => n.Subscribe)
+					  .WithMany()
+					  .HasForeignKey(n => n.SubscribeId)
+					  .OnDelete(DeleteBehavior.Cascade);
 			});
 
 			modelBuilder.Entity<ListenHistory>(entity =>
@@ -144,7 +218,7 @@ namespace BabaTune.Infrastructure.Data
 					  .HasForeignKey(lh => lh.SongId)
 					  .OnDelete(DeleteBehavior.Cascade);
 			});
-			
+
 			modelBuilder.Entity<Friendship>(entity =>
 			{
 				entity.HasKey(f => f.Id);
@@ -243,8 +317,7 @@ namespace BabaTune.Infrastructure.Data
 					.HasForeignKey(m => m.SongId)
 					.OnDelete(DeleteBehavior.Restrict);
 			});
-				
+
 		}
 	}
 }
-

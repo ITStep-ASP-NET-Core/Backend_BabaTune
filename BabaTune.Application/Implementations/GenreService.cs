@@ -6,13 +6,12 @@ using BabaTune.Domain.Common;
 using BabaTune.Domain.Entities;
 using BabaTune.Infrastructure.Interfaces;
 using Microsoft.AspNetCore.Http;
+using static BabaTune.Application.Common.Constants;
 
 namespace BabaTune.Application.Implementations
 {
 	public class GenreService : IGenreService
 	{
-		private const string DefaultGenreImageUrl = "https://storage.babatune.app/defaults/genre-cover.png";
-
 		private readonly IUnitOfWork _uow;
 
 		public GenreService ( IUnitOfWork uow )
@@ -46,7 +45,7 @@ namespace BabaTune.Application.Implementations
 
 		public async Task<Result> CreateAsync ( CreateGenreDto dto )
 		{
-			var imageUrl = DefaultGenreImageUrl;
+			var imageUrl = Defaults.GenreImageUrl;
 			if (dto.ImageFile is not null)
 			{
 				await using var imageStream = dto.ImageFile.OpenReadStream();
@@ -85,7 +84,7 @@ namespace BabaTune.Application.Implementations
 			if (genre is null)
 				return Result.Fail("Genre not found.");
 
-			if (genre.ImageUrl is not null && genre.ImageUrl != DefaultGenreImageUrl)
+			if (genre.ImageUrl is not null && genre.ImageUrl != Defaults.GenreImageUrl)
 				await _uow.Storage.DeleteAsync(genre.ImageUrl);
 
 			if (imageFile is not null)
@@ -95,7 +94,7 @@ namespace BabaTune.Application.Implementations
 			}
 			else
 			{
-				genre.ImageUrl = DefaultGenreImageUrl;
+				genre.ImageUrl = Defaults.GenreImageUrl;
 			}
 
 			_uow.Genres.Update(genre);
@@ -110,7 +109,7 @@ namespace BabaTune.Application.Implementations
 			if (genre is null)
 				return Result.Fail("Genre not found.");
 
-			if (genre.ImageUrl is not null && genre.ImageUrl != DefaultGenreImageUrl)
+			if (genre.ImageUrl is not null && genre.ImageUrl != Defaults.GenreImageUrl)
 				await _uow.Storage.DeleteAsync(genre.ImageUrl);
 
 			_uow.Genres.Delete(genre);
