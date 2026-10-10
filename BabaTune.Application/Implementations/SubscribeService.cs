@@ -11,10 +11,12 @@ namespace BabaTune.Application.Implementations
 	public class SubscribeService : ISubscribeService
 	{
 		private readonly IUnitOfWork _uow;
+		private readonly INoticeService _noticeService;
 
-		public SubscribeService ( IUnitOfWork uow )
+		public SubscribeService ( IUnitOfWork uow, INoticeService noticeService )
 		{
 			_uow = uow;
+			_noticeService = noticeService;
 		}
 
 		public async Task<PagedResult<UserSummaryDto>> GetSubscriptionsAsync ( Guid userId, int pageNumber, int pageSize )
@@ -47,6 +49,7 @@ namespace BabaTune.Application.Implementations
 
 			await _uow.Subscribes.AddAsync(subscribe);
 			await _uow.SaveChangesAsync();
+			await _noticeService.NotifyNewSubscriptionAsync(subscribedToId, subscribe.Id);
 
 			return Result.Ok();
 		}
@@ -70,7 +73,6 @@ namespace BabaTune.Application.Implementations
 			foreach (var subscribe in source.Items)
 			{
 				var user = selectUser(subscribe);
-				var listenersCount = await _uow.Subscribes.GetSubscribersCountAsync(user.Id);
 				items.Add(UserMapper.ToSummaryDto(user));
 			}
 

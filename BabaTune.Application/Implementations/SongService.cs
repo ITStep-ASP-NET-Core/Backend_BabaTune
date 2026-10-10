@@ -14,10 +14,12 @@ namespace BabaTune.Application.Implementations
 		private const string DefaultSongImageUrl = "https://storage.babatune.app/defaults/song-cover.png";
 
 		private readonly IUnitOfWork _uow;
+		private readonly INoticeService _noticeService;
 
-		public SongService ( IUnitOfWork uow )
+		public SongService ( IUnitOfWork uow, INoticeService noticeService )
 		{
 			_uow = uow;
+			_noticeService = noticeService;
 		}
 
 		public async Task<PagedResult<SongDto>> GetTopAsync ( TopPeriod period, int pageNumber, int pageSize, Guid? currentUserId )
@@ -162,6 +164,7 @@ namespace BabaTune.Application.Implementations
 
 				await _uow.Songs.AddAsync(song);
 				await _uow.SaveChangesAsync();
+				await _noticeService.NotifyNewSongAsync(userId, song.Id);
 
 				return Result.Ok();
 			}

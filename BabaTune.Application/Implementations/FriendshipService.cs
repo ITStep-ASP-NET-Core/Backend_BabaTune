@@ -11,10 +11,12 @@ namespace BabaTune.Application.Implementations
 	public class FriendshipService : IFriendshipService
 	{
 		private readonly IUnitOfWork _uow;
+		private readonly INoticeService _noticeService;
 
-		public FriendshipService ( IUnitOfWork uow )
+		public FriendshipService ( IUnitOfWork uow, INoticeService noticeService )
 		{
 			_uow = uow;
+			_noticeService = noticeService;
 		}
 
 		public async Task<PagedResult<FriendshipDto>> GetFriendsAsync ( Guid userId, int pageNumber, int pageSize )
@@ -72,6 +74,7 @@ namespace BabaTune.Application.Implementations
 			await _uow.Friendships.AddAsync(friendship);
 
 			await _uow.SaveChangesAsync();
+			await _noticeService.NotifyFriendRequestAsync(senderId, recipientId, friendship.Id);
 
 			return Result.Ok();
 		}

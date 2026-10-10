@@ -14,10 +14,12 @@ namespace BabaTune.Application.Implementations
 		private const int MaxAlbumSongs = 100;
 
 		private readonly IUnitOfWork _uow;
+		private readonly INoticeService _noticeService;
 
-		public AlbumService ( IUnitOfWork uow )
+		public AlbumService ( IUnitOfWork uow, INoticeService noticeService )
 		{
 			_uow = uow;
+			_noticeService = noticeService;
 		}
 
 		public async Task<AlbumDto?> GetByIdAsync ( Guid albumId )
@@ -78,6 +80,7 @@ namespace BabaTune.Application.Implementations
 				await _uow.Albums.AddAsync(album);
 				await _uow.Albums.AddSongsAsync(album.Id, songIds);
 				await _uow.SaveChangesAsync();
+				await _noticeService.NotifyNewAlbumAsync(userId, album.Id);
 
 				return Result.Ok();
 			}
